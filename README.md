@@ -14,6 +14,7 @@ GROUP 13
 
 ## Features
 ✅ Issue certificates with a unique ID, recipient name, and date.
+
 ✅ Verify certificate authenticity.
 ✅ Revoke certificates if needed.
 ✅ Event logging for all transactions
