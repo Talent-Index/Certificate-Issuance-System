@@ -21,6 +21,29 @@ GROUP 13
 
 
 ## Step 1: Open Remix & Create a New File
+
+Set up Javascript project
+
+> Create local folder
+
+mkdir CertificateIssuanceSystem
+
+> Navigate into the new folder
+
+cd CertificateIssuanceSystem
+
+### Initialize javascript
+npm init -y
+
+### Install Hardhat
+
+npm install --save-dev hardhat
+
+### Initialize hardhat project
+npx hardhat
+
+
+
 Go to Remix Ethereum IDE.
 Click "New File" and name it CertificateIssuer.sol.
 
