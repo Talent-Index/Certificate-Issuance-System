@@ -20,9 +20,9 @@ GROUP 13
 ✅ Event logging for all transactions
 
 
-## Step 1: Open Remix & Create a New File
+## Step 1: Open VS code 
 
-Set up Javascript project
+Set up Javascript project using terminal
 
 > Create local folder
 
