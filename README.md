@@ -16,7 +16,7 @@ GROUP 13
 ✅ Issue certificates with a unique ID, recipient name, and date.
 
 ✅ Verify certificate authenticity.
-✅ Revoke certificates if needed.
+✅ Revoke certificates.
 ✅ Event logging for all transactions
 
 
@@ -44,20 +44,6 @@ npx hardhat
 
 
 
-Go to Remix Ethereum IDE.
-Click "New File" and name it CertificateIssuer.sol.
-
-
-## Step 2 : Writing the Smart Contract
-
-We’ll implement a `ContractIssuer.sol` contract that demonstrates Solidity core concepts. Create the `contractIssur.sol` file inside the `contracts` folder and add the following code:
-
-
-
-## Step 3: Compile the Contract
-Click the "Solidity Compiler" (⚙ icon).
-Select Solidity version 0.8.x.
-Click "Compile CertificateIssuer.sol".
 
 
 ---
