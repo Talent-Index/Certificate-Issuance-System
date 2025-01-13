@@ -1,34 +1,63 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Lock {
-    uint public unlockTime;
-    address payable public owner;
-
-    event Withdrawal(uint amount, uint when);
-
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
-
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
+contract CertificateIssuanceSystem is Ownable(address(this)){
+    struct Certificate {
+        uint256 id;
+        string recipientName;
+        uint256 issueDate;
+        bool isValid;
     }
 
-    function withdraw() public {
-        // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
-        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
+    event CertificateIssued(uint256 indexed id, string recipientName, uint256 issueDate);
+    event CertificateRevoked(uint256 indexed id);
+    event CertificateVerified(uint256 indexed id, bool isValid);
+    event GasLimitUpdated(uint256 oldLimit, uint256 newLimit);
 
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
+    uint256 private nextCertificateId;
+    mapping(uint256 => Certificate) private certificates;
+    uint256 public gasLimit;
 
-        emit Withdrawal(address(this).balance, block.timestamp);
 
-        owner.transfer(address(this).balance);
+    constructor() {
+        nextCertificateId = 1; // Start IDs at 1 for better UX
+        gasLimit = 0 ; // Set initial gas limit to zero
+    }
+
+    function issueCertificate(string memory _recipientName) public onlyOwner {
+        uint256 certificateId = nextCertificateId++;
+        certificates[certificateId] = Certificate({
+            id: certificateId,
+            recipientName: _recipientName,
+            issueDate: block.timestamp,
+            isValid: true
+        });
+
+        emit CertificateIssued(certificateId, _recipientName, block.timestamp);
+    }
+
+    function verifyCertificate(uint256 _certificateId) public returns (bool) {
+        require(certificates[_certificateId].id != 0, "Certificate does not exist.");
+        emit CertificateVerified(_certificateId, certificates[_certificateId].isValid);
+        return certificates[_certificateId].isValid;
+    }
+
+    function revokeCertificate(uint256 _certificateId) public onlyOwner {
+        require(certificates[_certificateId].id != 0, "Certificate does not exist.");
+        certificates[_certificateId].isValid = false;
+
+        emit CertificateRevoked(_certificateId);
+    }
+
+    function getCertificate(uint256 _certificateId) public view returns (Certificate memory) {
+        require(certificates[_certificateId].id != 0, "Certificate does not exist.");
+        return certificates[_certificateId];
+    }
+
+    function setGasLimit(uint256 _newLimit) public onlyOwner {
+        emit GasLimitUpdated(gasLimit, _newLimit);
+        gasLimit = _newLimit;
     }
 }
