@@ -20,30 +20,21 @@ GROUP 13
 ✅ Event logging for all transactions
 
 
-## Step 1: Open VS code 
+## Step 1: Open Remix & Create a New File
+Go to Remix Ethereum IDE.
+Click "New File" and name it CertificateIssuer.sol.
 
-Set up Javascript project using terminal
 
-> Create local folder
+## Step 2 : Writing the Smart Contract
 
-mkdir CertificateIssuanceSystem
-
-> Navigate into the new folder
-
-cd CertificateIssuanceSystem
-
-### Initialize javascript
-npm init -y
-
-### Install Hardhat
-
-npm install --save-dev hardhat
-
-### Initialize hardhat project
-npx hardhat
+We’ll implement a `ContractIssuer.sol` contract that demonstrates Solidity core concepts. Create the `contractIssur.sol` file inside the `contracts` folder and add the following code:
 
 
 
+## Step 3: Compile the Contract
+Click the "Solidity Compiler" (⚙ icon).
+Select Solidity version 0.8.x.
+Click "Compile CertificateIssuer.sol".
 
 
 ---
