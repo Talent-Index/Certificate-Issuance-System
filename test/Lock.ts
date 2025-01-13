@@ -1,127 +1,98 @@
-import {
-  time,
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import hre from "hardhat";
+import { ethers } from "hardhat";
+import { CertificateIssuanceSystem } from "../typechain-types"; // Update the path as per your setup
 
-describe("Lock", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
-  async function deployOneYearLockFixture() {
-    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const ONE_GWEI = 1_000_000_000;
+describe("CertificateIssuanceSystem", function () {
+  let CertificateIssuanceSystem: any;
+  let certificateContract: CertificateIssuanceSystem;
+  let owner: any;
+  let addr1: any;
 
-    const lockedAmount = ONE_GWEI;
-    const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+  beforeEach(async function () {
+    // Get the contract factory
+    CertificateIssuanceSystem = await ethers.getContractFactory("CertificateIssuanceSystem");
 
-    // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await hre.ethers.getSigners();
+    // Deploy the contract
+    [owner, addr1] = await ethers.getSigners();
+    certificateContract = (await CertificateIssuanceSystem.deploy()) as CertificateIssuanceSystem;
 
-    const Lock = await hre.ethers.getContractFactory("Lock");
-    const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-
-    return { lock, unlockTime, lockedAmount, owner, otherAccount };
-  }
-
-  describe("Deployment", function () {
-    it("Should set the right unlockTime", async function () {
-      const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
-
-      expect(await lock.unlockTime()).to.equal(unlockTime);
-    });
-
-    it("Should set the right owner", async function () {
-      const { lock, owner } = await loadFixture(deployOneYearLockFixture);
-
-      expect(await lock.owner()).to.equal(owner.address);
-    });
-
-    it("Should receive and store the funds to lock", async function () {
-      const { lock, lockedAmount } = await loadFixture(
-        deployOneYearLockFixture
-      );
-
-      expect(await hre.ethers.provider.getBalance(lock.target)).to.equal(
-        lockedAmount
-      );
-    });
-
-    it("Should fail if the unlockTime is not in the future", async function () {
-      // We don't use the fixture here because we want a different deployment
-      const latestTime = await time.latest();
-      const Lock = await hre.ethers.getContractFactory("Lock");
-      await expect(Lock.deploy(latestTime, { value: 1 })).to.be.revertedWith(
-        "Unlock time should be in the future"
-      );
-    });
+    // Ensure the contract is deployed
+    // await certificateContract.deployed();
   });
 
-  describe("Withdrawals", function () {
-    describe("Validations", function () {
-      it("Should revert with the right error if called too soon", async function () {
-        const { lock } = await loadFixture(deployOneYearLockFixture);
+  it("should initialize with a gas limit of zero", async function () {
+    const initialGasLimit = await certificateContract.gasLimit();
+    expect(initialGasLimit).to.equal(0);
+  });
 
-        await expect(lock.withdraw()).to.be.revertedWith(
-          "You can't withdraw yet"
-        );
-      });
+  it("should allow the owner to update the gas limit", async function () {
+    await certificateContract.connect(owner).setGasLimit(50000); // Set gas limit to 50000
+    const updatedGasLimit = await certificateContract.gasLimit();
+    expect(updatedGasLimit).to.equal(50000);
+  });
 
-      it("Should revert with the right error if called from another account", async function () {
-        const { lock, unlockTime, otherAccount } = await loadFixture(
-          deployOneYearLockFixture
-        );
+  it("should emit an event when the gas limit is updated", async function () {
+    await expect(certificateContract.connect(owner).setGasLimit(100000))
+      .to.emit(certificateContract, "GasLimitUpdated")
+      .withArgs(0, 100000); // Check for old and new limits in the event
+  });
 
-        // We can increase the time in Hardhat Network
-        await time.increaseTo(unlockTime);
+  it("should issue a certificate when gas limit conditions are met", async function () {
+    await certificateContract.connect(owner).setGasLimit(1000); // Set a minimal gas limit
+    await certificateContract.connect(owner).issueCertificate("Alice");
+    const cert = await certificateContract.getCertificate(1);
+    expect(cert.recipientName).to.equal("Alice");
+    expect(cert.isValid).to.be.true;
+  });
 
-        // We use lock.connect() to send a transaction from another account
-        await expect(lock.connect(otherAccount).withdraw()).to.be.revertedWith(
-          "You aren't the owner"
-        );
-      });
+  it("should fail to issue a certificate if gas left is below the gas limit", async function () {
+    await certificateContract.connect(owner).setGasLimit(1000000000); // Set an unrealistically high gas limit
+    await expect(certificateContract.connect(owner).issueCertificate("Bob")).to.be.revertedWith(
+      "Insufficient gas for operation."
+    );
+  });
 
-      it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
-        const { lock, unlockTime } = await loadFixture(
-          deployOneYearLockFixture
-        );
+  it("should verify a certificate", async function () {
+    await certificateContract.connect(owner).issueCertificate("Charlie");
+    const isValid = await certificateContract.verifyCertificate(1);
+    expect(isValid).to.be.true;
+  });
 
-        // Transactions are sent using the first signer by default
-        await time.increaseTo(unlockTime);
+  it("should fail to verify a certificate if gas left is below the gas limit", async function () {
+    await certificateContract.connect(owner).setGasLimit(1000000000); // Set an unrealistically high gas limit
+    await expect(certificateContract.verifyCertificate(1)).to.be.revertedWith(
+      "Insufficient gas for operation."
+    );
+  });
 
-        await expect(lock.withdraw()).not.to.be.reverted;
-      });
-    });
+  it("should revoke a certificate when gas limit conditions are met", async function () {
+    await certificateContract.connect(owner).issueCertificate("David");
+    await certificateContract.connect(owner).revokeCertificate(1);
+    const cert = await certificateContract.getCertificate(1);
+    expect(cert.isValid).to.be.false;
+  });
 
-    describe("Events", function () {
-      it("Should emit an event on withdrawals", async function () {
-        const { lock, unlockTime, lockedAmount } = await loadFixture(
-          deployOneYearLockFixture
-        );
+  it("should fail to revoke a certificate if gas left is below the gas limit", async function () {
+    await certificateContract.connect(owner).setGasLimit(1000000000); // Set an unrealistically high gas limit
+    await expect(certificateContract.revokeCertificate(1)).to.be.revertedWith(
+      "Insufficient gas for operation."
+    );
+  });
 
-        await time.increaseTo(unlockTime);
+  it("should emit events when issuing, verifying, or revoking certificates", async function () {
+    // Issue event
+    await expect(certificateContract.connect(owner).issueCertificate("Eve"))
+      .to.emit(certificateContract, "CertificateIssued")
+      .withArgs(1, "Eve", await ethers.provider.getBlockNumber());
 
-        await expect(lock.withdraw())
-          .to.emit(lock, "Withdrawal")
-          .withArgs(lockedAmount, anyValue); // We accept any value as `when` arg
-      });
-    });
+    // Verify event
+    await expect(certificateContract.verifyCertificate(1))
+      .to.emit(certificateContract, "CertificateVerified")
+      .withArgs(1, true);
 
-    describe("Transfers", function () {
-      it("Should transfer the funds to the owner", async function () {
-        const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
-          deployOneYearLockFixture
-        );
-
-        await time.increaseTo(unlockTime);
-
-        await expect(lock.withdraw()).to.changeEtherBalances(
-          [owner, lock],
-          [lockedAmount, -lockedAmount]
-        );
-      });
-    });
+    // Revoke event
+    await expect(certificateContract.connect(owner).revokeCertificate(1))
+      .to.emit(certificateContract, "CertificateRevoked")
+      .withArgs(1);
   });
 });
