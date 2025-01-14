@@ -60,8 +60,8 @@ npm start
 1. Linet Mugwanja
 2. Farhiya Omar
 3. Salma Adam
-3. Sharon Kitav
-4. Ian 
+3. Sharon Kitavi
+4. Ian Macharia
 5. Stan
 6. Truth
 
