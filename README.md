@@ -1,48 +1,69 @@
 # Certificate-Issuance-System
-GROUP 13
-
-## Prerequisites
-
-
-1. Solidity Documentation: Solidity_Link
-2. Basic Understanding of Programming: Familiarity with programming concepts.
-3. Node.js Installed: Download and install Node.js from Node.js Official Site.
-5. Visual Studio Code: Link
-6. Remix: Remix
-
-
+Certificate Issuance System is a decentralized application (dApp) that uses smart contracts on a blockchain (like Avalanche) to issue, verify, and revoke certificates securely.
 
 ## Features
-✅ Issue certificates with a unique ID, recipient name, and date.
+# ✅ Issue certificates 
+Functionality: The contract owner (issuer) creates a certificate for a recipient.
+How It Works:
+A unique Certificate ID is assigned.
+The recipient’s name, course, and issue date are stored.
+An event log is generated for tracking.
 
-✅ Verify certificate authenticity.
-✅ Revoke certificates.
+# ✅ Verify certificate authenticity.
+Functionality: Anyone can check if a certificate is valid.
+How It Works:
+The blockchain stores certificate data.
+A function retrieves the details using the certificate ID.
+
+# ✅ Revoke certificates.
+Functionality: The issuer can revoke a certificate if needed.
+How It Works:
+The smart contract updates the certificate status to false.
+Revoked certificates can no longer be verified as valid.
+
 ✅ Event logging for all transactions
 
 
-## Step 1: Open VS code 
+# Tech Stack Used
 
-Set up Javascript project using terminal
+​Language: 
+ Solidity, JavaScript
 
-> Create local folder
+​Framework: 
+ Avalanche, React, 
 
-mkdir CertificateIssuanceSystem
+​Tools:
+   Hardhat, 
 
-> Navigate into the new folder
+# Setup Instructions
 
-cd CertificateIssuanceSystem
+1. ​Clone the repository:
+git clone [repository-url]
 
-### Initialize javascript
-npm init -y
+2. Install dependencies:
+ npm install
 
-### Install Hardhat
+3. ​Compile the contracts:
+npx hardhat compile
 
-npm install --save-dev hardhat
+4. Configure the Avalanche network
 
-### Initialize hardhat project
-npx hardhat
+​Open the hardhat.config.js file and add your Avalanche network details under the networks section.
+
+1. Deploy to Avalanche network:
+npx hardhat run scripts/deploy.js --network avalanche
+2. ​Run the application locally:
+npm start  
 
 
+# Team Members
+1. Linet Mugwanja
+2. Farhiya Omar
+3. Salma Adam
+3. Sharon Kitav
+4. Ian 
+5. Stan
+6. Truth
 
 
 
