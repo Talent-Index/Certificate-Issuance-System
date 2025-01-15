@@ -1,73 +1,47 @@
-# Certificate-Issuance-System
-Certificate Issuance System is a decentralized application (dApp) that uses smart contracts on a blockchain (like Avalanche) to issue, verify, and revoke certificates securely.
+# My Next.js App
 
-## Features
-# ✅ Issue certificates 
-Functionality: The contract owner (issuer) creates a certificate for a recipient.
-How It Works:
-A unique Certificate ID is assigned.
-The recipient’s name, course, and issue date are stored.
-An event log is generated for tracking.
+This project is a full-stack application consisting of a frontend built with Next.js and a backend server. 
 
-# ✅ Verify certificate authenticity.
-Functionality: Anyone can check if a certificate is valid.
-How It Works:
-The blockchain stores certificate data.
-A function retrieves the details using the certificate ID.
+## Frontend
 
-# ✅ Revoke certificates.
-Functionality: The issuer can revoke a certificate if needed.
-How It Works:
-The smart contract updates the certificate status to false.
-Revoked certificates can no longer be verified as valid.
+The frontend is located in the `frontend` directory and is built using React with TypeScript. It includes:
 
-✅ Event logging for all transactions
+- **Components**: Reusable UI components are located in the `components` directory.
+- **Pages**: The main entry point for the application is in the `pages` directory, including the homepage and custom app component.
+- **Public Assets**: Static files such as images and fonts are stored in the `public` directory.
+- **Styles**: Global CSS styles are defined in the `styles` directory.
+- **TypeScript Configuration**: The `tsconfig.json` file contains TypeScript compiler options.
+- **Package Configuration**: The `package.json` file lists dependencies and scripts for the frontend.
 
+## Backend
 
-# Tech Stack Used
+The backend is located in the `backend` directory and is responsible for handling server-side logic. It includes:
 
-​Language: 
- Solidity, JavaScript
+- **App Entry Point**: The main server setup is in `src/app.ts`.
+- **Type Definitions**: Shared types and interfaces are defined in `src/types/index.ts`.
+- **Package Configuration**: The `package.json` file lists dependencies and scripts for the backend.
+- **TypeScript Configuration**: The `tsconfig.json` file contains TypeScript compiler options.
 
-​Framework: 
- Avalanche, React, 
+## Getting Started
 
-​Tools:
-   Hardhat, 
+To get started with the project, clone the repository and install the dependencies for both the frontend and backend:
 
-# Setup Instructions
+1. Navigate to the `frontend` directory and run:
+   ```
+   npm install
+   npm run dev
+   ```
 
-1. ​Clone the repository:
-git clone [repository-url]
+2. In a separate terminal, navigate to the `backend` directory and run:
+   ```
+   npm install
+   npm start
+   ```
 
-2. Install dependencies:
- npm install
+## Contributing
 
-3. ​Compile the contracts:
-npx hardhat compile
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
-4. Configure the Avalanche network
+## License
 
-​Open the hardhat.config.js file and add your Avalanche network details under the networks section.
-
-1. Deploy to Avalanche network:
-npx hardhat run scripts/deploy.js --network avalanche
-2. ​Run the application locally:
-npm start  
-
-
-# Team Members
-1. Linet Mugwanja
-2. Farhiya Omar
-3. Salma Adam
-3. Sharon Kitav
-4. Ian 
-5. Stan
-6. Truth
-
-
-
----
-
-
-
+This project is licensed under the MIT License.
