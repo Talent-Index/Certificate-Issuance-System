@@ -4,6 +4,8 @@ import { useState } from "react"; // Importing useState hook from React for stat
 import { motion } from "framer-motion"; // Importing motion from framer-motion for animations
 import Navbar from "../components/Navbar"; // Importing Navbar component
 import { Toaster, toast } from "react-hot-toast"; // Importing Toaster and toast from react-hot-toast for notifications
+import { db } from "./firebase"; //Importing firebase config
+import { addDoc, collection } from "firebase/firestore"; // Import Firestore functions
 
 export default function Home() {
   // State variables for form inputs and waitlist status
@@ -16,9 +18,23 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission behavior
     // Here you would typically send the data to your backend
-    console.log({ name, email, interest }); // Log form data to the console
-    setIsWaitlisted(true); // Update waitlist status
-    toast.success("Successfully joined the waitlist!"); // Show success notification
+    try {
+      // Add form data to Firestore
+      await addDoc(collection(db, "waitlist"), {
+        name: name,
+        email: email,
+        interest: interest,
+        createdAt: new Date(),
+      });
+  
+      // Show success message
+      setIsWaitlisted(true);
+      toast.success("Successfully joined the waitlist!");
+    } catch (error) {
+      // Handle errors
+      console.error("Error adding document: ", error);
+      toast.error("Something went wrong. Please try again.");
+    }
   };
 
   return (
