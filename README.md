@@ -1,3 +1,45 @@
+
+# Certificate Issuance System.
+
+Certificate Issuance System is a decentralized application (dApp) that uses smart contracts on a blockchain (like Avalanche) to issue, verify, and revoke certificates securely.
+
+# Features
+1. Issue Certificates
+Functionality: The contract owner (issuer) creates a certificate for a recipient.
+How It Works:
+A unique Certificate ID is assigned.
+The recipient’s name, course, and issue date are stored.
+An event log is generated for tracking.
+
+2. Verify certificate. 
+Functionality: Anyone can check if a certificate is valid.
+How It Works:
+The blockchain stores certificate data.
+A function retrieves the details using the certificate ID.
+
+3. Revoke certificate.
+Functionality: The issuer can revoke a certificate if needed.
+How It Works:
+The smart contract updates the certificate status to false.
+Revoked certificates can no longer be verified as valid.
+
+# Tech Stack Used
+
+​Language:
+Solidity, JavaScript
+
+​Framework:
+Avalanche, React, Node.js, Firebase
+
+​Tools: 
+Truffle, Hardhat
+
+
+
+
+
+
+
 # My Next.js App
 
 This project is a full-stack application consisting of a frontend built with Next.js and a backend server. 
@@ -45,3 +87,14 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 ## License
 
 This project is licensed under the MIT License.
+
+
+# Team Members
+1. Ian Macharia
+2. Sharon Kitavi
+3. Farhiya Omar
+4. Salma Adam
+5. Linet Mugwanja
+6. Stan
+7. Truth
+
