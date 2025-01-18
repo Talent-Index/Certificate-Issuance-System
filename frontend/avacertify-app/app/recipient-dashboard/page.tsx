@@ -87,7 +87,7 @@ export default function RecipientDashboard() {
         }
         // Here you could load the user's certificates
         // This would require additional contract functionality
-      } catch (error) {
+      } catch (error: any) {
         router.push('/');
       }
     };

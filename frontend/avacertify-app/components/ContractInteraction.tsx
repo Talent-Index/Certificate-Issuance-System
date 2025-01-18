@@ -17,7 +17,7 @@ export const ContractStatus: React.FC = () => {
             setAddress(address);
             setStatus('connected');
             setError(null);
-        } catch (error) {
+        } catch (error: any) {
             setStatus('disconnected');
             setError('Wallet not connected');
         }
