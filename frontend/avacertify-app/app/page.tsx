@@ -9,14 +9,14 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import { Toaster, toast } from "react-hot-toast";
 import { db } from "./firebase";
 import { addDoc, collection } from "firebase/firestore";
-import { certificateService } from "../utils/contractinteraction";
-import ContractInteraction from "../components/ContractInteraction";
+// import { certificateService } from "../utils/contractinteraction";
+// import ContractInteraction from "../components/ContractInteraction";
 
 export default function Home() {
   // State variables for form inputs and waitlist status
@@ -25,21 +25,21 @@ export default function Home() {
   const [interest, setInterest] = useState("");
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
-  const [isConnecting, setIsConnecting] = useState(false);
+  // const [isConnecting, setIsConnecting] = useState(false);
 
-  const connectWallet = async () => {
-    setIsConnecting(true);
-    try {
-      const address = await certificateService.connectWallet();
-      setWalletAddress(address);
-      toast.success("Wallet connected successfully!");
-    } catch (error) {
-      toast.error("Failed to connect wallet. Please try again.");
-      console.error(error);
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+  // const connectWallet = async () => {
+  //   setIsConnecting(true);
+  //   try {
+  //     const address = await certificateService.connectWallet();
+  //     setWalletAddress(address);
+  //     toast.success("Wallet connected successfully!");
+  //   } catch (error) {
+  //     toast.error("Failed to connect wallet. Please try again.");
+  //     console.error(error);
+  //   } finally {
+  //     setIsConnecting(false);
+  //   }
+  // };
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();// Prevent default form submission behavior
