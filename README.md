@@ -1,3 +1,58 @@
+
+# Certificate Issuance System.
+
+Certificate Issuance System is a decentralized application (dApp) that uses smart contracts on a blockchain (like Avalanche) to issue, verify, and revoke certificates securely.
+
+# Features
+1. Issue Certificates
+Functionality: The contract owner (issuer) creates a certificate for a recipient.
+How It Works:
+A unique Certificate ID is assigned.
+The recipient’s name, course, and issue date are stored.
+An event log is generated for tracking.
+
+2. Verify certificate. 
+Functionality: Anyone can check if a certificate is valid.
+How It Works:
+The blockchain stores certificate data.
+A function retrieves the details using the certificate ID.
+
+3. Revoke certificate.
+Functionality: The issuer can revoke a certificate if needed.
+How It Works:
+The smart contract updates the certificate status to false.
+Revoked certificates can no longer be verified as valid.
+
+# Tech Stack Used
+
+​Language:
+Solidity, JavaScript
+
+​Framework:
+Avalanche, React, Node.js, Firebase
+
+​Tools: 
+Truffle, Hardhat
+
+# Setup Instructions
+1. ​Clone the repository:
+  git clone https://github.com/Avalanche-Team1-DAO-Kenya/Certificate-Issuance-System.git.
+
+2. Install dependencies:
+   npm install
+
+3. ​Compile the contracts:
+  npx hardhat compile
+
+4.. Configure the Avalanche network
+
+  (i) Deploy to Avalanche network:
+ npx hardhat run scripts/deploy.js --network avalanche
+
+ (ii) ​Run the application locally: npm start
+Contract Deployed to Fuji testnet with transaction Hash 0x4450c73190a8045653596cdf43d53dee7b3d6bb9a00ee3b2fe815afc84e5a6d4 Block Hash 0xfbcfb5100242149420123442933b3fed462b09413f1f9ee654cf1a3082ac4ad4 Block Number 37555225 Contract Address 0x0983ef28dc99e06d96f3a0cbcc4b3f74cd4404b0
+
+
 # My Next.js App
 
 This project is a full-stack application consisting of a frontend built with Next.js and a backend server. 
@@ -45,3 +100,14 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 ## License
 
 This project is licensed under the MIT License.
+
+
+# Team Members
+1. Ian Macharia
+2. Sharon Kitavi
+3. Farhiya Omar
+4. Salma Adam
+5. Linet Mugwanja
+6. Stan
+7. Truth
+
