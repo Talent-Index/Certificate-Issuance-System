@@ -11,6 +11,7 @@
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "ethers": "^5.7.2",
     "framer-motion": "^11.18.0",
     "lucide-react": "^0.471.1",
     "next": "14.2.16",
@@ -24,6 +25,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "avalanche": "^3.16.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.16",
     "postcss": "^8",

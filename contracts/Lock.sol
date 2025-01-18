@@ -14,6 +14,7 @@ contract CertificateIssuanceSystem is Ownable(address(this)){
     event CertificateIssued(uint256 indexed id, string recipientName, uint256 issueDate);
     event CertificateRevoked(uint256 indexed id);
     event CertificateVerified(uint256 indexed id, bool isValid);
+    // event CertificateTransferred(uint256 indexed id, address indexed from, address indexed to);
     event GasLimitUpdated(uint256 oldLimit, uint256 newLimit);
 
     uint256 private nextCertificateId;
@@ -50,6 +51,14 @@ contract CertificateIssuanceSystem is Ownable(address(this)){
 
         emit CertificateRevoked(_certificateId);
     }
+
+    // function transferCertificate(uint256 _certificateId, address _to) public {
+    //     require(certificates[_certificateId].id != 0, "Certificate does not exist");
+    //     require(certificates[_certificateId].isValid, "Certificate is not valid");
+    //     require(_to != address(0), "Invalid recipient address");
+
+    //     emit CertificateTransferred(_certificateId, msg.sender, _to);
+    // }
 
     function getCertificate(uint256 _certificateId) public view returns (Certificate memory) {
         require(certificates[_certificateId].id != 0, "Certificate does not exist.");

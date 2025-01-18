@@ -1,11 +1,46 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "commonjs",
-    "esModuleInterop": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true
-  }
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*",
+        "node_modules/*",
+        "frontend/avacertify-app/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "frontend/avacertify-app/**/*.ts",
+    "frontend/avacertify-app/**/*.tsx",
+    "frontend/avacertify-app/**/*.json"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
