@@ -47,12 +47,17 @@ export default function Navbar({ isWaitlisted }: NavbarProps) {
                 </Link>
               ))}
               {/* Connect Wallet button */}
-              <button
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                onClick={() => alert('Connect Wallet functionality goes here')}
+              {/* <button
+                onClick={connectWallet}
+                disabled={isConnecting}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
               >
-                Connect Wallet
-              </button>
+                {isConnecting
+                  ? "Connecting..."
+                  : walletAddress
+                    ? `Connected: ${walletAddress.substring(0, 6)}...`
+                    : "Connect Wallet"}
+              </button> */}
               {navItems.slice(3).map((item) => (
                 <Link
                   key={item.name}

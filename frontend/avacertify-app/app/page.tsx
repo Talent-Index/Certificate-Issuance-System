@@ -1,11 +1,22 @@
-"use client"; // This directive indicates that the file is a client-side component
+// "use client"; // This directive indicates that the file is a client-side component
+// import ContractInteraction from "../components/ContractInteraction";
+// import { useState } from "react"; // Importing useState hook from React for state management
+// import { motion } from "framer-motion"; // Importing motion from framer-motion for animations
+// import Navbar from "../components/Navbar"; // Importing Navbar component
+// import { Toaster, toast } from "react-hot-toast"; // Importing Toaster and toast from react-hot-toast for notifications
+// import { db } from "./firebase"; //Importing firebase config
+// import { addDoc, collection } from "firebase/firestore"; // Import Firestore functions
 
-import { useState } from "react"; // Importing useState hook from React for state management
-import { motion } from "framer-motion"; // Importing motion from framer-motion for animations
-import Navbar from "../components/Navbar"; // Importing Navbar component
-import { Toaster, toast } from "react-hot-toast"; // Importing Toaster and toast from react-hot-toast for notifications
-import { db } from "./firebase"; //Importing firebase config
-import { addDoc, collection } from "firebase/firestore"; // Import Firestore functions
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import Navbar from "../components/Navbar";
+import { Toaster, toast } from "react-hot-toast";
+import { db } from "./firebase";
+import { addDoc, collection } from "firebase/firestore";
+import { certificateService } from "../utils/contractinteraction";
+import ContractInteraction from "../components/ContractInteraction";
 
 export default function Home() {
   // State variables for form inputs and waitlist status
@@ -13,32 +24,48 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [interest, setInterest] = useState("");
   const [isWaitlisted, setIsWaitlisted] = useState(false);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
 
+  const connectWallet = async () => {
+    setIsConnecting(true);
+    try {
+      const address = await certificateService.connectWallet();
+      setWalletAddress(address);
+      toast.success("Wallet connected successfully!");
+    } catch (error) {
+      toast.error("Failed to connect wallet. Please try again.");
+      console.error(error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission behavior
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();// Prevent default form submission behavior
     // Here you would typically send the data to your backend
     try {
       // Add form data to Firestore
       await addDoc(collection(db, "waitlist"), {
-        name: name,
-        email: email,
-        interest: interest,
+        name,
+        email,
+        interest,
+        walletAddress,
         createdAt: new Date(),
       });
-  
-      // Show success message
+
       setIsWaitlisted(true);
       toast.success("Successfully joined the waitlist!");
     } catch (error) {
-      // Handle errors
       console.error("Error adding document: ", error);
       toast.error("Something went wrong. Please try again.");
     }
   };
 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-600 via-white to-blue-600 text-gray-800">
+
       {/* Main container with gradient background */}
       <Navbar isWaitlisted={isWaitlisted} /> {/* Navbar component with waitlist status prop */}
       <Toaster position="top-right" /> {/* Toaster component for notifications */}
