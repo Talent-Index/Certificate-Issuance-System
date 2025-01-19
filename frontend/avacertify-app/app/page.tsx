@@ -1,11 +1,3 @@
-// "use client"; // This directive indicates that the file is a client-side component
-// import ContractInteraction from "../components/ContractInteraction";
-// import { useState } from "react"; // Importing useState hook from React for state management
-// import { motion } from "framer-motion"; // Importing motion from framer-motion for animations
-// import Navbar from "../components/Navbar"; // Importing Navbar component
-// import { Toaster, toast } from "react-hot-toast"; // Importing Toaster and toast from react-hot-toast for notifications
-// import { db } from "./firebase"; //Importing firebase config
-// import { addDoc, collection } from "firebase/firestore"; // Import Firestore functions
 
 "use client";
 
@@ -24,23 +16,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [interest, setInterest] = useState("");
   const [isWaitlisted, setIsWaitlisted] = useState(false);
-  // const [walletAddress, setWalletAddress] = useState("");
-  // const [isConnecting, setIsConnecting] = useState(false);
-
-  // const connectWallet = async () => {
-  //   setIsConnecting(true);
-  //   try {
-  //     const address = await certificateService.connectWallet();
-  //     setWalletAddress(address);
-  //     toast.success("Wallet connected successfully!");
-  //   } catch (error) {
-  //     toast.error("Failed to connect wallet. Please try again.");
-  //     console.error(error);
-  //   } finally {
-  //     setIsConnecting(false);
-  //   }
-  // };
-  // Handle form submission
+  
   
   const [walletAddress] = useState("");
   
