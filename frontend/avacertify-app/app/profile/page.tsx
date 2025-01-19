@@ -53,7 +53,7 @@ export default function Profile() {
     }
 
     loadProfile()
-  }, [])
+  }, [router])
 
   if (isLoading) {
     return (

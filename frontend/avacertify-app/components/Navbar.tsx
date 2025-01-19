@@ -4,7 +4,7 @@
 
 // import { ethers } from 'ethers'
 // import { motion } from 'framer-motion'
-import { Home, FileText, User, Settings, Wallet } from 'lucide-react'
+import { Home, FileText, User, Settings, Wallet, Router } from 'lucide-react'
 import { useState, useEffect,  } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -91,7 +91,7 @@ export default function Navbar({ isWaitlisted }: NavbarProps) {
     }
 
     checkAuth()
-  }, [pathname])
+  }, [router])
 
 
   const connectWallet = async () => {

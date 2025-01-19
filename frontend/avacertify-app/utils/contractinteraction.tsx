@@ -1,4 +1,4 @@
-// src/utils/contractinteraction.tsx
+// utils/contractinteraction.tsx
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI, AVALANCHE_FUJI_CONFIG } from '../utils/contractConfig';
 
