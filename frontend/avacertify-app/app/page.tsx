@@ -26,11 +26,11 @@ export default function Home() {
     try {
       // Add form data to Firestore
       await addDoc(collection(db, "waitlist"), {
-        name,
-        email,
-        interest,
-        walletAddress,
+   name: name,
+        email: email,
+        interest: interest,
         createdAt: new Date(),
+    
       });
 
       setIsWaitlisted(true);
