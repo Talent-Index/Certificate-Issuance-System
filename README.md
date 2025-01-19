@@ -6,20 +6,26 @@ Certificate Issuance System is a decentralized application (dApp) that uses smar
 ## 💥 Features
 
 ➡️**1. Issue Certificates**
+
 Functionality: The contract owner (issuer) creates a certificate for a recipient.
+
 How It Works:
 - A unique Certificate ID is assigned.
 - The recipient’s name, course, and issue date are stored.
 - An event log is generated for tracking.
 
 ➡️**2. Verify certificate.**
+
 Functionality: Anyone can check if a certificate is valid.
+
 How It Works:
 - The blockchain stores certificate data.
 - A function retrieves the details using the certificate ID.
 
 ➡️**3. Revoke certificate.**
+
 Functionality: The issuer can revoke a certificate if needed.
+
 How It Works:
 - The smart contract updates the certificate status to false.
 - Revoked certificates can no longer be verified as valid.
@@ -27,12 +33,15 @@ How It Works:
 ## 🛠️ Tech Stack Used
 
 ​Languages:
+
 Solidity, JavaScript
 
 ​Framework:
+
 Avalanche, React, Node.js, Firebase
 
 ​Tools: 
+
 Truffle, Hardhat
 
 ## 🚀Setup Instructions
@@ -45,7 +54,7 @@ Truffle, Hardhat
 
   npm install
 
-4. ​Compile the contracts:
+3. ​Compile the contracts:
 
   npx hardhat compile
 
@@ -62,6 +71,7 @@ Truffle, Hardhat
 Contract Deployed to Fuji testnet with transaction Hash 0x4450c73190a8045653596cdf43d53dee7b3d6bb9a00ee3b2fe815afc84e5a6d4 Block Hash 0xfbcfb5100242149420123442933b3fed462b09413f1f9ee654cf1a3082ac4ad4 Block Number 37555225 Contract Address 0x0983ef28dc99e06d96f3a0cbcc4b3f74cd4404b0
 
 5. Set up Firebase configuration in `app/firebase.ts`:
+
    - Add your Firebase configuration details:
      
      REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
@@ -97,8 +107,11 @@ The backend is located in the `backend` directory and is responsible for handlin
 
 ## Database
 
+
 Firebase Integration
+
 Waitlist Form: Stores users details(name, email and interest).
+
 Profile: Retrieves users details.
 
 ## Getting Started
