@@ -11,50 +11,7 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import { auth, db } from '../app/firebase' // Make sure you have this configured
 import { doc, getDoc } from 'firebase/firestore'
-// import { UrlObject } from 'url'
 
-
-
-
-// // interface NavbarProps {
-// //   isWaitlisted: boolean
-// // }
-
-// // export default function Navbar({ isWaitlisted }: NavbarProps) {
-// //   const pathname = usePathname()
-
-// export default function Navbar({ isWaitlisted }: NavbarProps) {
-//   const pathname = usePathname()
-//   const [walletAddress, setWalletAddress] = useState<string>('')
-//   const [isConnecting, setIsConnecting] = useState(false)
-
-//   const navItems = [
-//     { name: 'Home', href: '/', icon: Home },
-//     { name: 'Issuer Dashboard', href: '/issuer-dashboard', icon: FileText },
-//     { name: 'Recipient Dashboard', href: '/recipient-dashboard', icon: User },
-//     { name: 'Profile', href: '/profile', icon: Settings },
-//   ]
-
-//   useEffect(() => {
-//     checkIfWalletIsConnected()
-//   }, [])
-
-//   const checkIfWalletIsConnected = async () => {
-//     try {
-//       const { ethereum } = window as any
-//       if (!ethereum) {
-//         console.log('Make sure you have MetaMask installed!')
-//         return
-//       }
-
-//       const accounts = await ethereum.request({ method: 'eth_accounts' })
-//       if (accounts.length !== 0) {
-//         setWalletAddress(accounts[0])
-//       }
-//     } catch (error) {
-//       console.error('Error checking wallet connection:', error)
-//     }
-//   }
 
 interface NavbarProps {
   isWaitlisted: boolean
@@ -67,31 +24,6 @@ export default function Navbar({ isWaitlisted }: NavbarProps) {
   const [isConnecting, setIsConnecting] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          // Check waitlist status in Firebase
-          const userDoc = await getDoc(doc(db, 'waitlist', user.uid))
-          if (userDoc.exists() && userDoc.data().isApproved) {
-            setIsAuthenticated(true)
-          } else {
-            setIsAuthenticated(false)
-            if (pathname !== '/') {
-              router.push('/')
-            }
-          }
-        } else {
-          setIsAuthenticated(false)
-          if (pathname !== '/') {
-            router.push('/')
-          }
-        }
-      })
-    }
-
-    checkAuth()
-  }, [router])
 
 
   const connectWallet = async () => {
@@ -143,21 +75,22 @@ export default function Navbar({ isWaitlisted }: NavbarProps) {
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home, requiresAuth: false },
-    { name: 'Issuer Dashboard', href: '/issuer-dashboard', icon: FileText, requiresAuth: true },
-    { name: 'Recipient Dashboard', href: '/recipient-dashboard', icon: User, requiresAuth: true },
-    { name: 'Profile', href: '/profile', icon: Settings, requiresAuth: true },
+    { name: 'Issuer Dashboard', href: '/issuer-dashboard', icon: FileText },
+    { name: 'Recipient Dashboard', href: '/recipient-dashboard', icon: User },
+    { name: 'Profile', href: '/profile', icon: Settings },
   ]
   
   
   return (
     <nav className="bg-white shadow-md">
+      {/*Logo*/} 
       <div className="flex items-center">
         <div className="flex-shrink-0 flex items-center px-4 py-4">
           <Link href="/">
             <span className="text-2xl font-bold text-blue-600">AvaCertify</span>
           </Link>
         </div>
-
+          {/*nav-container*/}
         <div className="container mx-auto flex justify-end items-center h-16 px-6 sm:px-8 lg:px-16 xl:px-20">
           <div className="flex justify-between h-16">
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
