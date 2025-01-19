@@ -16,7 +16,7 @@ export default function IssuerDashboard() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [certificateId, setCertificateId] = useState('')
-  const [isWaitlisted, setIsWaitlisted] = useState(true)
+  // const [isWaitlisted, setIsWaitlisted] = useState(true)
   const [formData, setFormData] = useState<CertificateForm>({
     recipientName: '',
     recipientEmail: '',
@@ -94,9 +94,10 @@ export default function IssuerDashboard() {
     }
   }
 
-  if (!isWaitlisted) {
-    return null;
-  }
+  const [isWaitlisted] = useState(false);
+  // if (!isWaitlisted) {
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-600 via-white to-blue-600">

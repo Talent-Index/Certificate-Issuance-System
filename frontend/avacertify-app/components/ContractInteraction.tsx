@@ -4,7 +4,7 @@ import { certificateService } from '../utils/contractinteraction';
 
 export const ContractStatus: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-    const [error, setError] = useState<string | null>(null);
+    // const [error, setError] = useState<string | null>(null);
     const [address, setAddress] = useState<string | null>(null);
 
     useEffect(() => {
@@ -16,23 +16,23 @@ export const ContractStatus: React.FC = () => {
             const address = await certificateService.getConnectedAddress();
             setAddress(address);
             setStatus('connected');
-            setError(null);
+            // setError(null);
         } catch (error: any) {
             setStatus('disconnected');
-            setError('Wallet not connected');
+            // setError('Wallet not connected');
         }
     };
 
     const handleConnect = async () => {
         setStatus('connecting');
-        setError(null);
+        // setError(null);
         try {
             const address = await certificateService.connectWallet();
             setAddress(address);
             setStatus('connected');
         } catch (error: any) {
             setStatus('disconnected');
-            setError(error.message || 'Failed to connect wallet');
+            // setError(error.message || 'Failed to connect wallet');
         }
     };
 
@@ -66,11 +66,11 @@ export const ContractStatus: React.FC = () => {
                     Address: {address.substring(0, 6)}...{address.substring(address.length - 4)}
                 </div>
             )}
-            {error && (
+            {/* {error && (
                 <div className="mt-2 text-sm text-red-600">
                     {error}
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

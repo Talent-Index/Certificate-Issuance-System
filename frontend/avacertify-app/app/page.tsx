@@ -24,7 +24,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [interest, setInterest] = useState("");
   const [isWaitlisted, setIsWaitlisted] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
+  // const [walletAddress, setWalletAddress] = useState("");
   // const [isConnecting, setIsConnecting] = useState(false);
 
   // const connectWallet = async () => {
@@ -41,6 +41,9 @@ export default function Home() {
   //   }
   // };
   // Handle form submission
+  
+  const [walletAddress] = useState("");
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();// Prevent default form submission behavior
     // Here you would typically send the data to your backend

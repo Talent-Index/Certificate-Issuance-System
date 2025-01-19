@@ -70,15 +70,11 @@ export default function RecipientDashboard() {
   const [certificateId, setCertificateId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // In a real application, you would check the waitlist status from a backend or local storage
-  const isWaitlisted = true; // This is a placeholder. Replace with actual logic.
-
-  if (!isWaitlisted) {
-    router.push('/');
-    return null;
-  }
+  
+  
 
   useEffect(() => {
+    
     const initializeDashboard = async () => {
       try {
         const address = await certificateService.getConnectedAddress();
@@ -92,7 +88,7 @@ export default function RecipientDashboard() {
       }
     };
     initializeDashboard();
-  }, []);
+  }, [router]);
 
   const handleVerifyCertificate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +106,13 @@ export default function RecipientDashboard() {
       setIsLoading(false);
     }
   };
+  
+  // In a real application, you would check the waitlist status from a backend or local storage
+  const isWaitlisted = true; // This is a placeholder. Replace with actual logic.
+    if (!isWaitlisted) {
+      router.push('/');
+    }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-600 via-white to-blue-600">
