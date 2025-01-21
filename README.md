@@ -157,7 +157,8 @@ This project is licensed under the MIT License.
 7. Truth - Front-end developer
 
 The link to the Pitch Deck:  https://drive.google.com/file/d/1G2SWkM36Go3ImLoS5zosMxQxY2-vcMPV/view?usp=drivesdk.
-QR Code of the pitch. (https://github.com/user-attachments/assets/20d74327-8910-4c90-9a88-109ec4a33d15)
+QR Code of the pitch. ![Avacertify](https://github.com/user-attachments/assets/988cb1db-dfe0-4ee9-b690-43d4a9908ce2)
+
 
  
 
