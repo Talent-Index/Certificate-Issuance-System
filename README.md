@@ -156,3 +156,10 @@ This project is licensed under the MIT License.
 6. Stan - Back-end developer
 7. Truth - Front-end developer
 
+The link to the Pitch Deck:  https://drive.google.com/file/d/1G2SWkM36Go3ImLoS5zosMxQxY2-vcMPV/view?usp=drivesdk.
+QR Code of the pitch. (https://github.com/user-attachments/assets/20d74327-8910-4c90-9a88-109ec4a33d15)
+
+ 
+
+
+
