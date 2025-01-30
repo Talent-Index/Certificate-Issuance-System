@@ -159,7 +159,15 @@ This project is licensed under the MIT License.
 The link to the Pitch Deck:  https://drive.google.com/file/d/1G2SWkM36Go3ImLoS5zosMxQxY2-vcMPV/view?usp=drivesdk.
 QR Code of the pitch. ![Avacertify](https://github.com/user-attachments/assets/988cb1db-dfe0-4ee9-b690-43d4a9908ce2)
 
+## ⭐ Next Steps
 
+- **Enhance UI/UX**: Improve the frontend for better user experience.
+- **Smart Contract Audit**: Perform a security audit to ensure robustness.
+- **Multi-Chain Deployment**: Expand support to more blockchains.
+- **Automated Certificate Issuance**: Integrate AI-powered automation for bulk issuance.
+- **Mobile App Development**: Build a mobile version for easy accessibility.
+- **Partner with Institutions**: Collaborate with universities and certification bodies for real-world adoption.
+- **Community Engagement**: Grow the developer and user community.
  
 
 
