@@ -1,4 +1,4 @@
-use client'
+'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -6,6 +6,7 @@ import Navbar from '../../components/Navbar'
 import { Toaster, toast } from 'react-hot-toast'
 
 export default function RecipientDashboard() {
+  
   const router = useRouter()
   const [certificateId, setCertificateId] = useState('')
 
