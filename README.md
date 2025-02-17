@@ -153,7 +153,7 @@ This project is licensed under the **MIT License**.
 
 - **Enhance UI/UX:** Improve the frontend for a better user experience.
 - **Smart Contract Audit:** Conduct a security audit for robustness.
-- **Multi-Chain Deployment:** Expand to other blockchain networks.
+- **Multi-Chain Deployment:** Expand to other blockchain networks.{not decided}
 - **Automated Issuance:** AI-powered bulk certificate issuance.
 - **Mobile App Development:** Build a mobile-friendly version.
 - **Institutional Partnerships:** Collaborate with universities and certification bodies.
