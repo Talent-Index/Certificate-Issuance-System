@@ -1,37 +1,69 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '../../components/Navbar'
 import { Toaster, toast } from 'react-hot-toast'
+import { certificateService } from '../../utils/blockchain'
 
 export default function IssuerDashboard() {
   const router = useRouter()
   const [certificateId, setCertificateId] = useState('')
+  const [connectedAddress, setConnectedAddress] = useState<string>('')
 
   // In a real application, you would check the waitlist status from a backend or local storage
-  const isWaitlisted = true // This is a placeholder. Replace with actual logic.
+  // const isWaitlisted = true // This is a placeholder. Replace with actual logic.
+
+  // if (!isWaitlisted) {
+  //   router.push('/')
+  //   return null
+  // }
+  const isWaitlisted = true
+
+  useEffect(() => {
+    // Connect wallet on mount
+    certificateService.connectWallet()
+      .then(address => setConnectedAddress(address))
+      .catch((error) => toast.error(error.message))
+  }, [])
 
   if (!isWaitlisted) {
     router.push('/')
     return null
   }
 
-  const handleIssueCertificate = (e: React.FormEvent) => {
+
+  const handleIssueCertificate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Here you would typically send the data to your backend
-    toast.success('Certificate issued successfully!')
+    const form = e.currentTarget
+    const recipientName = (form.elements.namedItem('recipientName') as HTMLInputElement).value
+
+    // Call blockchain method to issue certificate
+    const id = await certificateService.issueCertificate(recipientName)
+    if (id) {
+      toast.success(`Certificate issued successfully! ID: ${id}`)
+    } else {
+      toast.error('Failed to issue certificate')
+    }
   }
 
-  const handleVerifyCertificate = (e: React.FormEvent) => {
+  const handleVerifyCertificate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Here you would typically send the data to your backend
-    toast.success('Certificate verified successfully!')
+    const form = e.currentTarget
+    const certId = (form.elements.namedItem('certificateId') as HTMLInputElement).value
+    const valid = await certificateService.verifyCertificate(certId)
+    if (valid === null) {
+      toast.error('Error verifying certificate')
+    } else {
+      toast.success(`Certificate is ${valid ? 'valid' : 'invalid'}`)
+    }
   }
 
-  const handleRevokeCertificate = (e: React.FormEvent) => {
+  const handleRevokeCertificate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Here you would typically send the data to your backend
+    const form = e.currentTarget
+    const certId = (form.elements.namedItem('revokeCertificateId') as HTMLInputElement).value
+    await certificateService.revokeCertificate(certId)
     toast.success('Certificate revoked successfully!')
   }
 
