@@ -1,11 +1,13 @@
 // src/components/ContractStatus.tsx
 import { useState, useEffect } from 'react';
-import { certificateService } from '../utils/contractinteraction';
+import { certificateService } from '../utils/blockchain';
 
 export const ContractStatus: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
     // const [error, setError] = useState<string | null>(null);
     const [address, setAddress] = useState<string | null>(null);
+    const [storedValue, setStoredValue] = useState<string | null>(null);
+    const [inputValue, setInputValue] = useState("");
 
     useEffect(() => {
         checkConnection();
@@ -33,6 +35,18 @@ export const ContractStatus: React.FC = () => {
         } catch (error: any) {
             setStatus('disconnected');
             // setError(error.message || 'Failed to connect wallet');
+        }
+    };
+
+    const retrieveValue = async () => {
+        try {
+            const contract = await getContract();
+            if (contract) {
+                const value = await contract.retrieve();
+                setStoredValue(value.toString());
+            }
+        } catch (error) {
+            console.error("Error retrieving value:", error);
         }
     };
 
