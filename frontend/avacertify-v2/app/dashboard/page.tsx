@@ -23,6 +23,9 @@ interface FormData {
   recipientAddress: string;
   certificateType: string;
   issueDate: string;
+  expirationDate?: string;
+  additionalDetails?: string;
+  institutionName: string;
 }
 
 export default function Dashboard() {
