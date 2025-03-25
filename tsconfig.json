@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "ES2020",
     "lib": [
-      "dom",
+      "ES2020",
+      "DOM",
       "dom.iterable",
       "esnext"
     ],
@@ -27,7 +28,8 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "moduleResolution": "node"
   },
   "include": [
     "next-env.d.ts",
@@ -36,8 +38,12 @@
     ".next/types/**/*.ts",
     "frontend/avacertify-app/**/*.ts",
     "frontend/avacertify-app/**/*.tsx",
-    "frontend/avacertify-app/**/*.json"
+    "frontend/avacertify-app/**/*.json",
+    "scripts",
+    "test",
+    "frontend"
   ],
+  "files": ["hardhat.config.ts"],
   "exclude": [
     "node_modules"
   ]

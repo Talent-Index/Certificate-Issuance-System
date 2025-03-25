@@ -1,4 +1,5 @@
 import { ethers, run } from "hardhat";
+import { Contract } from "ethers";
 
 async function main() {
   // Compile the contract
@@ -16,20 +17,31 @@ async function main() {
   await certificateIssuanceSystem.waitForDeployment();
 
   console.log("CertificateIssuanceSystem deployed to:", await certificateIssuanceSystem.getAddress());
+
+  // Deploy NFT Certificate Contract
+  // const OrganizationNFTCertificate = await ethers.getContractFactory("OrganizationNFTCertificate");
+  // console.log("Deploying OrganizationNFTCertificate...");
+  // const nftCertificate = await OrganizationNFTCertificate.deploy();
+  // await nftCertificate.waitForDeployment();
+  
+  // const nftAddress = await nftCertificate.getAddress();
+  // console.log("OrganizationNFTCertificate deployed to:", nftAddress);
+
+//   // Save deployment info
+//   console.log("Saving deployment info...");
+//   return {
+//       OrganizationNFTCertificate: nftAddress
+//     };
 }
 
-  const OrganizationNFTCertificate = await ethers.getContractFactory("OrganizationNFTCertificate");
-  
-  console.log("Deploying OrganizationNFTCertificate...");
-  const nftCertificate = await OrganizationNFTCertificate.deploy();
-  await nftCertificate.waitForDeployment();
-
-  console.log("OrganizationNFTCertificate deployed to:", await nftCertificate.getAddress());
-
-
+// Execute deployment
 main()
-  .then(() => process.exit(0))
+  .then((deploymentInfo) => {
+    console.log("Deployment completed successfully!");
+    console.log(deploymentInfo);
+    process.exit(0);
+  })
   .catch((error) => {
-    console.error(error);
+    console.error("Deployment failed:", error);
     process.exit(1);
   });
