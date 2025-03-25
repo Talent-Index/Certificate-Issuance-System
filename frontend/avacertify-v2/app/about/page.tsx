@@ -1,6 +1,6 @@
 "use client"
-import { Layout } from "@/components/layout.jsx"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx"
+import { Layout } from "@/components/layout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import dynamic from 'next/dynamic'
 
 // Dynamically import icons
