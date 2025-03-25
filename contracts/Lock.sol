@@ -2,9 +2,11 @@
 pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract CertificateIssuanceSystem is AccessControl {
+contract CertificateIssuanceSystem is AccessControl, ReentrancyGuard {
     bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     struct Certificate {
         uint256 id;
@@ -23,11 +25,11 @@ contract CertificateIssuanceSystem is AccessControl {
 
     constructor() {
         nextCertificateId = 1; // Start IDs at 1 for better UX
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(ADMIN_ROLE, msg.sender);
         _setupRole(ISSUER_ROLE, msg.sender);
     }
 
-    function issueCertificate(string memory _recipientName, address _owner) public onlyRole(ISSUER_ROLE) {
+    function issueCertificate(string memory _recipientName, address _owner) public onlyRole(ISSUER_ROLE) nonReentrant {
         uint256 certificateId = nextCertificateId++;
         certificates[certificateId] = Certificate({
             id: certificateId,
@@ -45,14 +47,14 @@ contract CertificateIssuanceSystem is AccessControl {
         return certificates[_certificateId].isValid;
     }
 
-    function revokeCertificate(uint256 _certificateId) public onlyRole(ISSUER_ROLE) {
+    function revokeCertificate(uint256 _certificateId) public onlyRole(ISSUER_ROLE) nonReentrant {
         require(certificates[_certificateId].id != 0, "Certificate does not exist.");
         certificates[_certificateId].isValid = false;
 
         emit CertificateRevoked(_certificateId);
     }
 
-    function transferCertificate(uint256 _certificateId, address _to) public {
+    function transferCertificate(uint256 _certificateId, address _to) public nonReentrant {
         require(certificates[_certificateId].id != 0, "Certificate does not exist");
         require(certificates[_certificateId].isValid, "Certificate is not valid");
         require(_to != address(0), "Invalid recipient address");
@@ -63,11 +65,11 @@ contract CertificateIssuanceSystem is AccessControl {
     }
 
     // Admin functions
-    function addIssuer(address _issuer) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function addIssuer(address _issuer) public onlyRole(ADMIN_ROLE) nonReentrant {
         grantRole(ISSUER_ROLE, _issuer);
     }
 
-    function removeIssuer(address _issuer) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function removeIssuer(address _issuer) public onlyRole(ADMIN_ROLE) nonReentrant {
         revokeRole(ISSUER_ROLE, _issuer);
     }
 }

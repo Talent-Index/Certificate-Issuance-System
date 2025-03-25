@@ -23,9 +23,20 @@ interface NFTMetadata {
     }>;
 }
 
+type ContractMethodName = 'issueCertificate' | 'getCertificate' | 'revokeCertificate';
+
+interface ContractMethods {
+    issueCertificate(recipientName: string): Promise<any>;
+    getCertificate(id: string): Promise<any>;
+    revokeCertificate(id: string): Promise<any>;
+    estimateGas: {
+        [key in ContractMethodName]: (...args: any[]) => Promise<number>;
+    };
+}
+
 export class CertificateService {
     private provider: ethers.BrowserProvider | null = null;
-    private contract: ethers.Contract | null = null;
+    private contract: (ethers.Contract & ContractMethods) | null = null;
     private signer: ethers.Signer | null = null;
 
     constructor() {
@@ -38,9 +49,24 @@ export class CertificateService {
         if (!this.provider) {
             throw new Error('Provider not initialized');
         }
+
         try {
+            const accounts = await this.provider.send('eth_requestAccounts', []);
             this.signer = await this.provider.getSigner();
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer);
+            
+            // Initialize contract with type checking
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS, 
+                CONTRACT_ABI, 
+                this.signer
+            ) as ethers.Contract & ContractMethods;
+            
+            // Verify contract has required methods
+            if (!contract.issueCertificate || !contract.getCertificate) {
+                throw new Error('Contract missing required methods');
+            }
+            
+            this.contract = contract;
         } catch (error) {
             console.error('Error initializing contract:', error);
             throw error;
@@ -90,7 +116,7 @@ export class CertificateService {
             }
 
             this.signer = await this.provider.getSigner();
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer);
+            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
 
             return accounts[0];
         } catch (error: any) {
@@ -112,7 +138,7 @@ export class CertificateService {
 
             }
 
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer);
+            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
 
         }
 
@@ -120,25 +146,14 @@ export class CertificateService {
 
     }
 
-    private async validateTransaction(method: string, params: any[]): Promise<boolean> {
+    private async validateTransaction(method: ContractMethodName, params: any[]): Promise<boolean> {
         if (!this.contract || !this.signer) {
-            return false;
+            throw new Error('Contract or signer not initialized');
         }
-        
+
         try {
-            // Estimate gas to verify transaction is valid
-            const gasEstimate = await (this.contract?.estimateGas as any)[method](...params);
-            
-            // Get current gas price
-            const gasPrice = await this.provider?.getFeeData();
-            
-            // Calculate maximum cost
-            const maxCost = gasEstimate * (gasPrice?.maxFeePerGas || BigInt(0));
-            
-            // Get contract bytecode to verify it matches deployed contract
-            const bytecode = await this.provider?.getCode(this.contract.getAddress());
-            
-            return bytecode !== '0x' && maxCost > 0;
+            const gasEstimate = await this.contract.estimateGas[method](...params);
+            return Number(gasEstimate) > 0;
         } catch (error) {
             console.error('Transaction validation failed:', error);
             return false;

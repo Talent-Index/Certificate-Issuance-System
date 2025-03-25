@@ -76,10 +76,10 @@ AvaCertify is a decentralized application (dApp) that leverages smart contracts 
 
 ### 📍 Contract Details (Deployed on Fuji Testnet)
 
-- **Transaction Hash:** `0x4450c73190a8045653596cdf43d53dee7b3d6bb9a00ee3b2fe815afc84e5a6d4`
-- **Block Hash:** `0xfbcfb5100242149420123442933b3fed462b09413f1f9ee654cf1a3082ac4ad4`
-- **Block Number:** `37555225`
-- **Contract Address:** `0x0983ef28dc99e06d96f3a0cbcc4b3f74cd4404b0`
+- **Transaction Hash:** `0x2b967c1dd8114a5d78c768169b7dec2e846caaa13d1f38b6acbff86f99ece1c7`
+- **Block Hash:** `0x2dd43ca6d755ccedf7ae2f0b8f36a4c0a749f2d4be7a91c55a627bccd9fb0c25`
+- **Block Number:** `38862712`
+- **Contract Address:** `0x5b0a76A7261b42083a4a4a8A2C101271C8542fFc`
 
 ### 5️⃣ Set up Firebase Configuration
 
