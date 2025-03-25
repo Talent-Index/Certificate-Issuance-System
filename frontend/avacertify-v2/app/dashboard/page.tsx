@@ -47,18 +47,22 @@ export default function Dashboard() {
         const service = new CertificateService();
         await service.init();
         setCertificateService(service);
+        toast({
+          title: "Connected",
+          description: "Wallet connected successfully",
+        });
       } catch (error) {
-        console.error('Failed to initialize blockchain connection:', error);
+        console.error('Failed to initialize blockchain:', error);
         toast({
           title: "Connection Error",
-          description: "Failed to connect to blockchain. Please check your wallet connection.",
+          description: error instanceof Error ? error.message : "Failed to connect wallet",
           variant: "destructive"
         });
       }
     };
 
     initBlockchain();
-  }, []);
+  }, [toast]);
 
   // Update handleIssueCertificate to interact with smart contract
   const handleIssueCertificate = async (event: React.FormEvent<HTMLFormElement>) => {
