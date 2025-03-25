@@ -16,11 +16,14 @@ import { PlusCircle, FileText, Copy, ExternalLink } from "lucide-react"
 import { motion } from "framer-motion"
 import { useToast } from "@/hooks/use-toast"
 import { type Certificate, placeholderCertificates } from "@/lib/types"
+import { CertificateService } from "@/utils/blockchain";
 
 export default function Dashboard() {
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [certificateService, setCertificateService] = useState<CertificateService | null>(null)
+  const [isIssuing, setIsIssuing] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -37,31 +40,110 @@ export default function Dashboard() {
     localStorage.setItem("certificates", JSON.stringify(certificates))
   }, [certificates])
 
-  const handleIssueCertificate = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const certificateId = `CERT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-    const transactionHash = `0x${[...Array(64)].map(() => Math.floor(Math.random() * 16).toString(16)).join("")}`
-    const newCertificate: Certificate = {
-      id: Date.now().toString(),
-      certificateId,
-      transactionHash,
-      recipientName: formData.get("recipientName") as string,
-      recipientAddress: formData.get("recipientAddress") as string,
-      certificateType: formData.get("certificateType") as string,
-      issueDate: formData.get("issueDate") as string,
-      expirationDate: (formData.get("expirationDate") as string) || "",
-      additionalDetails: formData.get("additionalDetails") as string,
-      isRevoked: false,
-      institutionName: formData.get("institutionName") as string,
+  // Initialize blockchain connection
+  useEffect(() => {
+    const initBlockchain = async () => {
+      try {
+        const service = new CertificateService();
+        await service.init();
+        setCertificateService(service);
+      } catch (error) {
+        console.error('Failed to initialize blockchain connection:', error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to connect to blockchain. Please check your wallet connection.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    initBlockchain();
+  }, []);
+
+  // Update handleIssueCertificate to interact with smart contract
+  const handleIssueCertificate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    console.log("Starting certificate issuance...");
+    
+    if (!certificateService) {
+      console.error("Blockchain service not initialized");
+      toast({
+        title: "Connection Error",
+        description: "Please connect your wallet first",
+        variant: "destructive"
+      });
+      return;
     }
-    setCertificates((prevCertificates) => [...prevCertificates, newCertificate])
-    toast({
-      title: "Certificate Issued",
-      description: `Certificate ${certificateId} issued to ${newCertificate.recipientName}`,
-    })
-    event.currentTarget.reset()
-  }
+
+    setIsIssuing(true);
+    const formData = new FormData(event.currentTarget);
+    
+    try {
+      // Log form data for debugging
+      console.log("Form data:", {
+        recipientName: formData.get("recipientName"),
+        recipientAddress: formData.get("recipientAddress"),
+        certificateType: formData.get("certificateType"),
+        issueDate: formData.get("issueDate"),
+      });
+
+      // Validate required fields
+      const recipientName = formData.get("recipientName") as string;
+      const recipientAddress = formData.get("recipientAddress") as string;
+      
+      if (!recipientName || !recipientAddress) {
+        throw new Error("Missing required fields");
+      }
+
+      // Show transaction pending toast
+      toast({
+        title: "Transaction Pending",
+        description: "Please confirm the transaction in your wallet",
+      });
+
+      const certificateId = await certificateService.issueCertificate(
+        recipientName,
+        recipientAddress
+      );
+      
+      console.log("Certificate issued with ID:", certificateId);
+
+      if (certificateId) {
+        const newCertificate: Certificate = {
+          id: Date.now().toString(),
+          certificateId: certificateId,
+          transactionHash: "", // Will be updated with actual hash
+          recipientName,
+          recipientAddress,
+          certificateType: formData.get("certificateType") as string,
+          issueDate: formData.get("issueDate") as string,
+          expirationDate: formData.get("expirationDate") as string || "",
+          additionalDetails: formData.get("additionalDetails") as string,
+          isRevoked: false,
+          institutionName: formData.get("institutionName") as string,
+        };
+
+        setCertificates(prev => [...prev, newCertificate]);
+        
+        toast({
+          title: "Success",
+          description: `Certificate issued successfully to ${recipientName}`,
+          variant: "default"
+        });
+        
+        event.currentTarget.reset();
+      }
+    } catch (error: any) {
+      console.error("Certificate issuance failed:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to issue certificate",
+        variant: "destructive"
+      });
+    } finally {
+      setIsIssuing(false);
+    }
+  };
 
   const revokeCertificate = (certificateId: string) => {
     setCertificates((prevCertificates) =>
@@ -148,8 +230,18 @@ export default function Dashboard() {
                       placeholder="Enter any additional information about the certificate..."
                     />
                   </div>
-                  <Button type="submit">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Issue Certificate
+                  <Button type="submit" disabled={isIssuing || !certificateService}>
+                    {isIssuing ? (
+                      <>
+                        <span className="spinner mr-2"></span>
+                        Issuing...
+                      </>
+                    ) : (
+                      <>
+                        <PlusCircle className="mr-2 h-4 w-4" /> 
+                        Issue Certificate
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -317,4 +409,3 @@ export default function Dashboard() {
     </Layout>
   )
 }
-
