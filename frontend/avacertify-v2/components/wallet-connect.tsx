@@ -19,7 +19,7 @@ declare global {
 
 export function WalletConnect() {
   const [account, setAccount] = useState<string | null>(null)
-  const [walletType, setWalletType] = useState<"metamask" | "core" | null>(null)
+  const [, setWalletType] = useState<"metamask" | "core" | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
