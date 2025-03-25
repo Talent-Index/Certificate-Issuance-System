@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card.jsx"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function Introduction() {
   return (

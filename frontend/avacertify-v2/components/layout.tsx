@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
-import { Navigation } from "./navigation.jsx"
-import { Footer } from "./footer.jsx"
+import { Navigation } from "./navigation"
+import { Footer } from "./footer"
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
