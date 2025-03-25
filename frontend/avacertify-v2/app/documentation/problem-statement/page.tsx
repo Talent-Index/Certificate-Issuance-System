@@ -47,6 +47,9 @@ export default function ProblemStatement() {
             <li>Ensuring Immutability: Data on the blockchain cannot be altered or tampered with.</li>
             <li>Enhancing Transparency: Public verification eliminates trust issues.</li>
             <li>Facilitating Decentralization: Removes the need for centralized authorities.</li>
+            <li>
+              Avalanche&apos;s high-speed, low-cost infrastructure enables efficient certificate management.
+            </li>
           </ul>
           <p className="mt-4">
             AvaCertify leverages Avalanche's high-speed, low-cost, and secure blockchain infrastructure to deliver these

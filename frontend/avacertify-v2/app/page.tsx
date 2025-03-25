@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Shield, Eye, CheckCircle, Clock, FileX } from "lucide-react"
 import Link from "next/link"
+import type { ComponentProps } from "@/types/custom";
 
-const FeatureCard = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
+const FeatureCard = ({ icon: Icon, title, description }: ComponentProps) => (
   <Card className="group hover:shadow-lg transition-all duration-300 dark:hover:shadow-primary/5">
     <CardContent className="p-6">
       <Icon className="h-12 w-12 text-primary mb-4 group-hover:scale-110 transition-transform duration-300" />

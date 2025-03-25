@@ -105,11 +105,22 @@ export default function Dashboard() {
         description: "Please confirm the transaction in your wallet",
       });
 
-      const certificateId = await certificateService.issueCertificate(
-        recipientName,
-        recipientAddress
-      );
-      
+      let certificateId;
+      try {
+        certificateId = await certificateService.issueCertificate(
+          recipientName,
+          recipientAddress
+        );
+      } catch (error: any) {
+        console.error("Certificate issuance failed:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to issue certificate",
+          variant: "destructive"
+        });
+        return;
+      }
+
       console.log("Certificate issued with ID:", certificateId);
 
       if (certificateId) {

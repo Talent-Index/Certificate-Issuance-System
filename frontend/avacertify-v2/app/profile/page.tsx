@@ -44,12 +44,12 @@ export default function ProfilePage() {
     })
   }
 
-  const handleShare = (certId: number) => {
+  const handleShare = () => {
     toast({
       title: "Certificate Shared",
       description: "Share link copied to clipboard!",
-    })
-  }
+    });
+  };
 
   return (
     <Layout>
@@ -125,7 +125,7 @@ export default function ProfilePage() {
                               <Download className="h-4 w-4 mr-2" />
                               Download
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => handleShare(cert.id)}>
+                            <Button variant="outline" size="sm" onClick={handleShare}>
                               <Share2 className="h-4 w-4 mr-2" />
                               Share
                             </Button>
