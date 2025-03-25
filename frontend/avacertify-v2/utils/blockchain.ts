@@ -47,28 +47,12 @@ export class CertificateService {
 
     async init(): Promise<void> {
         if (!this.provider) {
-            throw new Error('Provider not initialized');
+          throw new Error('No provider available');
         }
-
         try {
-            const accounts = await this.provider.send('eth_requestAccounts', []);
-            this.signer = await this.provider.getSigner();
-            
-            // Initialize contract with type checking
-            const contract = new ethers.Contract(
-                CONTRACT_ADDRESS, 
-                CONTRACT_ABI, 
-                this.signer
-            ) as ethers.Contract & ContractMethods;
-            
-            // Verify contract has required methods
-            if (!contract.issueCertificate || !contract.getCertificate) {
-                throw new Error('Contract missing required methods');
-            }
-            
-            this.contract = contract;
+            await this.provider.send('eth_requestAccounts', []);
         } catch (error) {
-            console.error('Error initializing contract:', error);
+            console.error('Failed to initialize provider:', error);
             throw error;
         }
     }
