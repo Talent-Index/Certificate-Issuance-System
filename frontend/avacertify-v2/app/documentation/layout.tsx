@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils.js"
 import { motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
-import { Layout } from "@/components/layout"
+import { Layout } from "@/components/layout.jsx"
 import type React from "react"
 
 interface NavItem {

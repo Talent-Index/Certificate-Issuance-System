@@ -3,20 +3,20 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Layout } from "@/components/layout"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Layout } from "@/components/layout.jsx"
+import { Button } from "@/components/ui/button.jsx"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.jsx"
+import { Input } from "@/components/ui/input.jsx"
+import { Label } from "@/components/ui/label.jsx"
+import { Textarea } from "@/components/ui/textarea.jsx"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.jsx"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog.jsx"
 import { PlusCircle, FileText, Copy, ExternalLink } from "lucide-react"
 import { motion } from "framer-motion"
-import { useToast } from "@/hooks/use-toast"
-import { type Certificate, placeholderCertificates } from "@/lib/types"
-import { CertificateService } from "@/utils/blockchain";
+import { useToast } from "@/hooks/use-toast.js"
+import { type Certificate, placeholderCertificates } from "@/lib/types.js"
+import { CertificateService } from "@/utils/blockchain.js";
 
 interface FormData {
   recipientName: string;
