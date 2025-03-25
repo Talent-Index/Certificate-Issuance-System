@@ -12,7 +12,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "CommonJS",
+    "module": "commonjs",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -25,9 +25,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./*",
-        "./node_modules/*",
-        "./frontend/avacertify-app/*"
+        "./*"
       ]
     }
   },

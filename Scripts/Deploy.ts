@@ -18,6 +18,15 @@ async function main() {
   console.log("CertificateIssuanceSystem deployed to:", await certificateIssuanceSystem.getAddress());
 }
 
+  const OrganizationNFTCertificate = await ethers.getContractFactory("OrganizationNFTCertificate");
+  
+  console.log("Deploying OrganizationNFTCertificate...");
+  const nftCertificate = await OrganizationNFTCertificate.deploy();
+  await nftCertificate.waitForDeployment();
+
+  console.log("OrganizationNFTCertificate deployed to:", await nftCertificate.getAddress());
+
+
 main()
   .then(() => process.exit(0))
   .catch((error) => {

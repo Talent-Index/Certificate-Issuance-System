@@ -3,26 +3,20 @@ import { ethers } from "hardhat";
 import { CertificateIssuanceSystem } from "../typechain-types"; // Update the path as per your setup
 
 describe("CertificateIssuanceSystem", function () {
-  let CertificateIssuanceSystem: any;
-  let certificateContract: CertificateIssuanceSystem;
+  let certificateContract: any;
   let owner: any;
-  let addr1: any;
+  let user: any;
 
   beforeEach(async function () {
-    // Get the contract factory
-    CertificateIssuanceSystem = await ethers.getContractFactory("CertificateIssuanceSystem");
-
-    // Deploy the contract
-    [owner, addr1] = await ethers.getSigners();
-    certificateContract = (await CertificateIssuanceSystem.deploy()) as CertificateIssuanceSystem;
-
-    // Ensure the contract is deployed
-    // await certificateContract.deployed();
+    [owner, user] = await ethers.getSigners();
+    
+    const CertificateSystem = await ethers.getContractFactory("CertificateIssuanceSystem");
+    certificateContract = await CertificateSystem.deploy();
   });
 
   it("should initialize with a gas limit of zero", async function () {
-    const initialGasLimit = await certificateContract.gasLimit();
-    expect(initialGasLimit).to.equal(0);
+    const gasLimit = await certificateContract.gasLimit();
+    expect(gasLimit).to.equal(0);
   });
 
   it("should allow the owner to update the gas limit", async function () {
