@@ -14,9 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PlusCircle, FileText, Copy, ExternalLink } from "lucide-react"
 import { motion } from "framer-motion"
-import { useToast } from "@/hooks/use-toast.js"
-import { type Certificate, placeholderCertificates } from "@/lib/types.js"
-import { CertificateService } from "@/utils/blockchain.js";
+import { useToast } from "@/hooks/use-toast"
+import { type Certificate, placeholderCertificates } from "@/lib/types"
+import { CertificateService } from "@/utils/blockchain";
 
 interface FormData {
   recipientName: string;
