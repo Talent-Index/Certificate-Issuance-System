@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "es5",
     "lib": [
-      "ES2020",
-      "DOM",
+      "dom",
       "dom.iterable",
       "esnext"
     ],
@@ -13,11 +12,12 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "commonjs",
+    "module": "Node16",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "moduleResolution": "node16", // Ensure this is set to "node16"
     "plugins": [
       {
         "name": "next"
@@ -28,20 +28,13 @@
       "@/*": [
         "./*"
       ]
-    },
-    "moduleResolution": "node"
+    }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "frontend/avacertify-app/**/*.ts",
-    "frontend/avacertify-app/**/*.tsx",
-    "frontend/avacertify-app/**/*.json",
-    "scripts",
-    "test",
-    "frontend"
+    ".next/types/**/*.ts"
   ],
   "files": ["hardhat.config.ts"],
   "exclude": [

@@ -18,6 +18,16 @@ import { useToast } from "@/hooks/use-toast"
 import { type Certificate, placeholderCertificates } from "@/lib/types"
 import { CertificateService } from "@/utils/blockchain";
 
+interface FormData {
+  recipientName: string;
+  recipientAddress: string;
+  certificateType: string;
+  issueDate: string;
+  expirationDate?: string;
+  additionalDetails?: string;
+  institutionName: string;
+}
+
 export default function Dashboard() {
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
@@ -83,13 +93,14 @@ export default function Dashboard() {
     const formData = new FormData(event.currentTarget);
     
     try {
-      // Log form data for debugging
-      console.log("Form data:", {
-        recipientName: formData.get("recipientName"),
-        recipientAddress: formData.get("recipientAddress"),
-        certificateType: formData.get("certificateType"),
-        issueDate: formData.get("issueDate"),
-      });
+      const data = {
+        recipientName: formData.get("recipientName") as string,
+        recipientAddress: formData.get("recipientAddress") as string,
+        certificateType: formData.get("certificateType") as string, 
+        issueDate: formData.get("issueDate") as string
+      };
+
+      console.log("Form data:", data);
 
       // Validate required fields
       const recipientName = formData.get("recipientName") as string;
@@ -105,11 +116,22 @@ export default function Dashboard() {
         description: "Please confirm the transaction in your wallet",
       });
 
-      const certificateId = await certificateService.issueCertificate(
-        recipientName,
-        recipientAddress
-      );
-      
+      let certificateId;
+      try {
+        certificateId = await certificateService.issueCertificate(
+          recipientName,
+          recipientAddress
+        );
+      } catch (error: any) {
+        console.error("Certificate issuance failed:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to issue certificate",
+          variant: "destructive"
+        });
+        return;
+      }
+
       console.log("Certificate issued with ID:", certificateId);
 
       if (certificateId) {

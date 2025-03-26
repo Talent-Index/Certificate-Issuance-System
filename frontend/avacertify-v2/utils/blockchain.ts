@@ -3,15 +3,18 @@ import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI, AVALANCHE_FUJI_CONFIG } from '../utils/contractConfig';
 
 export interface Certificate {
-    id: number;
-    recipientName: string;
-    issueDate: number;
-    isValid: boolean;
-    institutionName: string;
-    certificateType: string;
-    additionalDetails?: string;
-    isRevoked: boolean;
+  id: string
+  recipientName: string
+  recipientAddress: string
+  certificateType: string
+  issueDate: string
+  expirationDate?: string
+  institutionName: string
+  status: 'active' | 'revoked'
+  additionalDetails?: string
 }
+
+export const placeholderCertificates: Certificate[] = []
 
 interface NFTMetadata {
     name: string;
@@ -153,7 +156,7 @@ export class CertificateService {
                 { trait_type: "Institution", value: certificate.institutionName },
                 { trait_type: "Type", value: certificate.certificateType },
                 { trait_type: "Issue Date", value: certificate.issueDate.toString() },
-                { trait_type: "Status", value: certificate.isRevoked ? "Revoked" : "Valid" }
+                { trait_type: "Status", value: certificate.status === 'revoked' ? "Revoked" : "Valid" }
             ]
         };
     }
@@ -179,11 +182,11 @@ export class CertificateService {
             const metadata = await this.generateMetadata({
                 id: certificateId,
                 recipientName,
+                recipientAddress,
                 certificateType: "Certificate",
-                issueDate: Math.floor(Date.now() / 1000),
-                isRevoked: false,
-                institutionName: "Your Institution",
-                isValid: true
+                issueDate: Math.floor(Date.now() / 1000).toString(),
+                status: 'active',
+                institutionName: "Your Institution"
             });
 
             // Upload metadata to IPFS (implement this)

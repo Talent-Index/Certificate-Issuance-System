@@ -25,14 +25,12 @@ export const ContractStatus: React.FC = () => {
 
     const handleConnect = async () => {
         setStatus('connecting');
-        // setError(null);
         try {
             const address = await certificateService.connectWallet();
             setAddress(address);
             setStatus('connected');
         } catch (error: any) {
             setStatus('disconnected');
-            // setError(error.message || 'Failed to connect wallet');
         }
     };
 

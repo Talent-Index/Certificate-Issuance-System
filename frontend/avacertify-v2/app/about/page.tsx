@@ -1,7 +1,12 @@
 "use client"
 import { Layout } from "@/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Zap, Globe } from "lucide-react"
+import dynamic from 'next/dynamic'
+
+// Dynamically import icons
+const Shield = dynamic(() => import('lucide-react').then(mod => mod.Shield))
+const Zap = dynamic(() => import('lucide-react').then(mod => mod.Zap))
+const Globe = dynamic(() => import('lucide-react').then(mod => mod.Globe))
 
 export default function About() {
   return (
