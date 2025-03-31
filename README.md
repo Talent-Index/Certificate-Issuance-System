@@ -20,6 +20,27 @@ https://github.com/I-Macharia/Certificate-Issuance-System/AvaCertify_Pitch.mp4
   - Organization registration and branding features
 
 ## 🏗️ Architecture
+=======
+- **Functionality:** Anyone can verify a certificate’s validity.
+- **How It Works:**
+  - The blockchain securely stores certificate data.
+  - A function retrieves certificate details using the Certificate ID.
+
+### 3️⃣ Revoke Certificates
+
+- **Functionality:** The issuer can revoke a certificate if necessary.
+- **How It Works:**
+  - The smart contract updates the certificate status to "revoked."
+  - Revoked certificates can no longer be verified as valid.
+
+## 🛠️ Tech Stack
+
+- **Languages:** Solidity, JavaScript
+- **Frameworks:** Avalanche, React, Node.js, Firebase
+- **Tools:** Truffle, Hardhat
+
+
+## 🔧 Project Structure
 
 ### Frontend (Next.js)
 - **Framework**: Next.js 14 with TypeScript
@@ -109,6 +130,22 @@ anvil
 
 # Deploy to local chain
 forge script script/Deploy.s.sol --rpc-url http://localhost:8545 --private-key <your-key> --broadcast
+```
+
+## 🚀 Setup Instructions for the Backend
+
+
+### Set up Firebase Configuration
+
+In `app/firebase.ts`, add your Firebase credentials:
+
+```env
+REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+REACT_APP_FIREBASE_PROJECT_ID=your_firebase_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+REACT_APP_FIREBASE_APP_ID=your_firebase_app_id
 ```
 
 ## 📋 Usage Guide
