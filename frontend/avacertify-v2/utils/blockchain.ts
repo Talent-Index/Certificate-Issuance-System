@@ -1,6 +1,6 @@
 // utils/blockchain.ts
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI, AVALANCHE_FUJI_CONFIG } from '../utils/contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, Educhain_Test_CONFIG } from '../utils/contractConfig';
 
 export interface Certificate {
   id: string
@@ -76,7 +76,7 @@ export class CertificateService {
                 }
                 await (window.ethereum as any).request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: AVALANCHE_FUJI_CONFIG.chainId }],
+                    params: [{ chainId: Educhain_Test_CONFIG.chainId }],
                 });
             } catch (switchError: any) {
                 // This could be due to the network not existing or the user rejecting the switch
@@ -87,7 +87,7 @@ export class CertificateService {
                         }
                         await (window.ethereum as any).request({
                             method: 'wallet_addEthereumChain',
-                            params: [AVALANCHE_FUJI_CONFIG],
+                            params: [Educhain_Test_CONFIG],
                         });
                     } catch (addError) {
                         console.error('Error adding Avalanche Fuji network:', addError);

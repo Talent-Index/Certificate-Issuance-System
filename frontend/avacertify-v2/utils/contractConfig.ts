@@ -3,17 +3,28 @@
 
 
 
-export const AVALANCHE_FUJI_CONFIG = {
-    chainId: '0xa869',
-    chainName: 'Avalanche Fuji Testnet',
+export const Educhain_Test_CONFIG = {
+    chainId: '0xa045c',
+    chainName: 'EDU Chain Testnet',
     nativeCurrency: {
-        name: 'AVAX',
-        symbol: 'AVAX',
+        name: 'EDU',
+        symbol: 'EDU',
         decimals: 18
     },
-    rpcUrls: ['https://avalanche-fuji.infura.io/v3/YOUR_INFURA_ID'],
-    blockExplorerUrls: ['https://testnet.snowtrace.io/']
+    rpcUrls: ['https://open-campus-codex-sepolia.drpc.org'],
+    blockExplorerUrls: ['https://edu-chain-testnet.blockscout.com/']
 };
+//     const AVALANCHE_FUJI_CONFIG = {
+//     chainId: '0xa869',
+//     chainName: 'Avalanche Fuji Testnet',
+//     nativeCurrency: {
+//         name: 'AVAX',
+//         symbol: 'AVAX',
+//         decimals: 18
+//     },
+//     rpcUrls: ['https://avalanche-fuji.infura.io/v3/YOUR_INFURA_ID'],
+//     blockExplorerUrls: ['https://testnet.snowtrace.io/']
+// };
     // Contract details
 export const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3" // "0x5b0a76A7261b42083a4a4a8A2C101271C8542fFc" //"0x0983Ef28Dc99E06D96f3a0CBCc4B3F74cd4404b0"; // Replace with your deployed contract address
 export const CONTRACT_ABI = [
