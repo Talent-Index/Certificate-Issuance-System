@@ -4,8 +4,8 @@ import { certificateService } from '@/utils/blockchain';
 
 export const ContractStatus: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-    // const [error, setError] = useState<string | null>(null);
     const [address, setAddress] = useState<string | null>(null);
+    const [isIssuing, setIsIssuing] = useState(false);
 
     useEffect(() => {
         checkConnection();
@@ -16,10 +16,8 @@ export const ContractStatus: React.FC = () => {
             const address = await certificateService.getConnectedAddress();
             setAddress(address);
             setStatus('connected');
-            // setError(null);
         } catch (error: any) {
             setStatus('disconnected');
-            // setError('Wallet not connected');
         }
     };
 
@@ -31,6 +29,38 @@ export const ContractStatus: React.FC = () => {
             setStatus('connected');
         } catch (error: any) {
             setStatus('disconnected');
+        }
+    };
+
+    const handleIssueCertificate = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsIssuing(true);
+
+        try {
+            const form = e.currentTarget;
+            const recipientName = (form.elements.namedItem('recipientName') as HTMLInputElement).value;
+
+            if (!recipientName) {
+                throw new Error('Recipient name is required');
+            }
+
+            const id = await certificateService?.issueCertificate(recipientName);
+
+            toast({
+                title: "Success",
+                description: `Certificate issued with ID: ${id}`,
+            });
+
+            form.reset();
+        } catch (error) {
+            console.error(error);
+            toast({
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to issue certificate",
+                variant: "destructive"
+            });
+        } finally {
+            setIsIssuing(false);
         }
     };
 

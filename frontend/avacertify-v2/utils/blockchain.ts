@@ -39,7 +39,7 @@ interface ContractMethods {
 
 export class CertificateService {
     private provider: ethers.BrowserProvider | null = null;
-    private contract: (ethers.Contract & ContractMethods) | null = null;
+    private contract: ethers.Contract | null = null;
     private signer: ethers.Signer | null = null;
 
     constructor() {
@@ -161,50 +161,46 @@ export class CertificateService {
         };
     }
 
-    async issueCertificate(recipientName: string, recipientAddress: string): Promise<string | null> {
-        if (!this.contract || !await this.validateTransaction('issueCertificate', [recipientName])) {
-            throw new Error('Transaction validation failed');
+    async issueCertificate(recipientName: string): Promise<string | null> {
+        if (!this.contract || !this.provider) {
+            throw new Error('Contract or provider not initialized');
         }
 
         try {
-            // First issue the certificate
-            const tx = await this.contract.issueCertificate(recipientName);
-            const receipt = await tx.wait();
-
-            const event = receipt.events?.find((e: { event: string; }) => e.event === 'CertificateIssued');
-            if (!event?.args?.id) {
-                throw new Error('Certificate issuance failed');
+            // Validate input
+            if (!recipientName?.trim()) {
+                throw new Error('Recipient name is required');
             }
 
-            const certificateId = event.args.id.toString();
+            // Estimate gas first
+            const gasEstimate = await this.contract.issueCertificate.estimateGas(recipientName);
+            
+            // Add 20% buffer to gas estimate
+            const gasLimit = Math.floor(gasEstimate.toString() * 1.2);
 
-            // Then mint the NFT
-            const metadata = await this.generateMetadata({
-                id: certificateId,
-                recipientName,
-                recipientAddress,
-                certificateType: "Certificate",
-                issueDate: Math.floor(Date.now() / 1000).toString(),
-                status: 'active',
-                institutionName: "Your Institution"
+            // Send transaction with gas limit
+            const tx = await this.contract.issueCertificate(recipientName, {
+                gasLimit
             });
 
-            // Upload metadata to IPFS (implement this)
-            const metadataUri = await this.uploadMetadataToIPFS(metadata);
+            const receipt = await tx.wait();
+            
+            // Find CertificateIssued event
+            const event = receipt.events?.find(
+                (e: { event: string }) => e.event === 'CertificateIssued'
+            );
 
-            // Mint NFT with confirmation dialog
-            if (window.confirm('Would you like to mint an NFT certificate? This requires an additional transaction.')) {
-                const nftTx = await this.contract.mintCertificateNFT(
-                    recipientAddress,
-                    certificateId,
-                    metadataUri
-                );
-                await nftTx.wait();
+            if (!event?.args?.id) {
+                throw new Error('Certificate ID not found in event');
             }
 
-            return certificateId;
+            return event.args.id.toString();
+
         } catch (error) {
-            console.error('Error in certificate issuance:', error);
+            console.error('Error issuing certificate:', error);
+            if (error instanceof Error) {
+                throw new Error(`Failed to issue certificate: ${error.message}`);
+            }
             throw error;
         }
     }
