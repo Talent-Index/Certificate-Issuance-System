@@ -21,7 +21,7 @@ export const ContractStatus: React.FC = () => {
     useEffect(() => {
         const checkConnection = async () => {
             try {
-                const connectedAddress = await certificateService.getConnectedAddress();
+                const connectedAddress = certificateService.getConnectedAddress();
                 if (typeof connectedAddress === 'string' && connectedAddress) {
                     setAddress(connectedAddress);
                     setStatus('connected');
@@ -38,7 +38,7 @@ export const ContractStatus: React.FC = () => {
 
     const checkConnection = async () => {
         try {
-            const address = await certificateService.getConnectedAddress();
+            const address = certificateService.getConnectedAddress();
             if (typeof address === 'string' && address) {
                 setAddress(address);
                 setStatus('connected');

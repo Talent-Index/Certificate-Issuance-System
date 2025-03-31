@@ -1,7 +1,19 @@
 // utils/blockchain.ts
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI, AVALANCHE_FUJI_CONFIG, NFT_CERTIFICATE_ADDRESS, NFT_CERTIFICATE_ABI } from '../utils/contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, NFT_CERTIFICATE_ADDRESS, NFT_CERTIFICATE_ABI } from '../utils/contractConfig';
 import { IPFSService } from '@/utils/ipfsService';
+
+const AVALANCHE_FUJI_CONFIG = {
+  chainId: '0xA869', // 43113
+  chainName: 'Avalanche Fuji C-Chain',
+  nativeCurrency: {
+    name: 'Avalanche',
+    symbol: 'AVAX',
+    decimals: 18,
+  },
+  rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
+  blockExplorerUrls: ['https://testnet.snowtrace.io/'],
+};
 
 // Define Window interface augmentation for ethereum
 declare global {

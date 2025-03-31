@@ -3,17 +3,28 @@
 
 
 
-export const AVALANCHE_FUJI_CONFIG = {
-  chainId: '0xa869',
-  chainName: 'Avalanche Fuji Testnet',
+export const Educhain_Test_CONFIG = {
+  chainId: '0xa045c',
+  chainName: 'EDU Chain Testnet',
   nativeCurrency: {
-    name: 'AVAX',
-    symbol: 'AVAX',
+    name: 'EDU',
+    symbol: 'EDU',
     decimals: 18
   },
-  rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-  blockExplorerUrls: ['https://testnet.snowtrace.io/']
+    rpcUrls: ['https://open-campus-codex-sepolia.drpc.org'],
+    blockExplorerUrls: ['https://edu-chain-testnet.blockscout.com/']
 };
+//     const AVALANCHE_FUJI_CONFIG = {
+//     chainId: '0xa869',
+//     chainName: 'Avalanche Fuji Testnet',
+//     nativeCurrency: {
+//         name: 'AVAX',
+//         symbol: 'AVAX',
+//         decimals: 18
+//     },
+//   rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
+//   blockExplorerUrls: ['https://testnet.snowtrace.io/']
+// };
 // Contract details
 export const CERTIFICATE_SYSTEM_ADDRESS = "0x9213c9e46e950dcb316ba35126f39299bb0ecaaa" // CertificateIssuanceSystem deployed on Fuji testnet
 export const NFT_CERTIFICATE_ADDRESS = "0xdE5b750ebBc0A92a53614f18081E72609F09BC69" // OrganizationNFTCertificate deployed on Fuji testnet
