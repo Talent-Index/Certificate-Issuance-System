@@ -69,7 +69,12 @@ export function Navigation() {
           </nav>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+  {/* Notification Button - Hidden on small screens */}
+  <motion.div
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    className="hidden md:block" // Hide on small screens, show on medium and larger screens
+>
             <Button
               variant="ghost"
               size="icon"
@@ -120,4 +125,5 @@ export function Navigation() {
     </motion.header>
   )
 }
+
 
