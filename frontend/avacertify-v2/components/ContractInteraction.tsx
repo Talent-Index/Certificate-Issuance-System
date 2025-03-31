@@ -1,7 +1,7 @@
-// src/components/ContractInteraction.tsx
-"use client"
+// src/components/ContractStatus.tsx
 import { useState, useEffect } from 'react';
 import { certificateService } from '@/utils/blockchain';
+import { toast } from '@/hooks/use-toast';
 
 /**
  * Component for interacting with the smart contract
@@ -11,6 +11,7 @@ import { certificateService } from '@/utils/blockchain';
 const ContractInteraction: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
     const [address, setAddress] = useState<string | null>(null);
+    const [isIssuing, setIsIssuing] = useState(false);
 
     useEffect(() => {
         const checkConnection = async () => {
@@ -30,10 +31,16 @@ const ContractInteraction: React.FC = () => {
         checkConnection();
     }, []);
 
-    /**
-     * Handles wallet connection
-     * Attempts to connect to the user's wallet and updates the connection status
-     */
+    const checkConnection = async () => {
+        try {
+            const address = await certificateService.getConnectedAddress();
+            setAddress(address);
+            setStatus('connected');
+        } catch (error: any) {
+            setStatus('disconnected');
+        }
+    };
+
     const handleConnect = async () => {
         setStatus('connecting');
         try {
@@ -46,18 +53,6 @@ const ContractInteraction: React.FC = () => {
         }
     };
 
-    /**
-     * Handles certificate issuance
-     * Issues a test certificate with hardcoded values for testing purposes
-     */
-    const handleIssueCertificate = async () => {
-        try {
-            const tx = await certificateService.issueCertificate("John Doe", "0x123...");
-            console.log('Certificate issued:', tx);
-        } catch (err) {
-            console.error('Failed to issue certificate:', err);
-        }
-    };
 
     /**
      * Retrieves certificate information
@@ -69,6 +64,40 @@ const ContractInteraction: React.FC = () => {
             console.log('Certificate:', cert);
         } catch (err) {
             console.error('Failed to get certificate:', err);
+        }
+    };
+
+    /**
+     * Handles certificate issuance
+     * Issues a test certificate with hardcoded values for testing purposes
+     */
+    const handleIssueCertificate = async () => {
+        setIsIssuing(true);
+
+        try {
+            const recipientName = prompt('Enter recipient name:');
+
+            if (!recipientName) {
+                throw new Error('Recipient name is required');
+            }
+
+            // Provide a second argument as required by issueCertificate (e.g., a placeholder or actual value)
+            const id = await certificateService?.issueCertificate(recipientName, "");
+
+            toast({
+                title: "Success",
+                description: `Certificate issued with ID: ${id}`,
+            });
+        } catch (error) {
+            console.error(error);
+            toast({
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to issue certificate",
+                variant: "destructive"
+            });
+        } finally {
+            setIsIssuing(false);
+
         }
     };
 
