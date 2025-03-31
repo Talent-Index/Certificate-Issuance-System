@@ -14,11 +14,14 @@ async function mintPOAP(recipient, eventId) {
         const response = await axios.post("https://api.poap.xyz/actions/claim-qr", data, {
             headers: { "X-API-Key": apiKey }
         });
-        console.log("POAP issued:", response.data);
+        return response.data; 
     } catch (error) {
-        console.error("Error issuing POAP:", error);
+        console.error("Error issuing POAP:", error.response?.data || error.message);
+        throw new Error("Failed to issue POAP");
     }
 }
 
-mintPOAP("0xRecipientAddress", 12345); // Replace with actual event ID
+module.exports = mintPOAP;
 */
+
+
