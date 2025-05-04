@@ -1,7 +1,6 @@
 // src/components/ContractStatus.tsx
 import { useState, useEffect } from 'react';
 import { certificateService } from '@/utils/blockchain';
-import { toast } from '@/hooks/use-toast';
 
 /**
  * Component for interacting with the smart contract
@@ -10,6 +9,29 @@ import { toast } from '@/hooks/use-toast';
  */
 const ContractInteraction = () => {
     // This component is currently empty. You can implement it or remove it if not needed.
+}
+
+
+// Import from a toast library like react-hot-toast or create a custom toast component
+import { toast as hotToast } from '@/hooks/use-toast';
+
+function toast({ title, description, variant = 'default' }: {
+    title: string;
+    description: string;
+    variant?: 'default' | 'destructive'
+}) {
+    const message = `${title}: ${description}`;
+    if (variant === 'destructive') {
+        hotToast({
+            title: message,
+            variant: "destructive",
+        });
+    } else {
+        hotToast({
+            title: message,
+            variant: "default",
+        });
+    }
 }
 
 

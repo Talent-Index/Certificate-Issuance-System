@@ -75,7 +75,7 @@ export class CertificateService {
   }
   private provider: ethers.BrowserProvider | null = null;
   private signer: ethers.JsonRpcSigner | null = null;
-  private contract: ethers.Contract | null = null;
+  private contract: CertificateContract | null = null;
 
   /**
    * Creates a new CertificateService instance and initializes the provider if available.
@@ -122,7 +122,7 @@ private async initialize(): Promise<void> {
             CONTRACT_ADDRESS,
             CONTRACT_ABI,
             this.signer
-        ) as ethers.Contract & ContractMethods;
+        ) as CertificateContract;
     }
 }
 
@@ -189,7 +189,7 @@ private async initialize(): Promise<void> {
         CONTRACT_ADDRESS,
         CONTRACT_ABI,
         this.signer,
-      ) as ethers.Contract & ContractMethods;
+      ) as CertificateContract;
       return accounts[0];
     } catch (error: unknown) {
       console.error('Error connecting wallet:', error);
@@ -208,7 +208,7 @@ private async initialize(): Promise<void> {
    * Raises:
    *   Error: If the wallet is not connected or the provider is unavailable.
    */
-  async getContract(): Promise<ethers.Contract> {
+  async getContract(): Promise<CertificateContract> {
     if (this.contract) {
       return this.contract;
     }
@@ -227,7 +227,7 @@ private async initialize(): Promise<void> {
       }
     }
 
-    this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
+    this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as CertificateContract;
     return this.contract;
   }
 
