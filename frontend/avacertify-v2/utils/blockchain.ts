@@ -32,14 +32,16 @@ interface ContractMethods {
     issueCertificate(recipientName: string): Promise<any>;
     getCertificate(id: string): Promise<any>;
     revokeCertificate(id: string): Promise<any>;
-    estimateGas: {
-        [key in ContractMethodName]: (...args: any[]) => Promise<number>;
-    };
+    verifyCertificate(id: string): Promise<boolean>;
+    estimateGas: Record<ContractMethodName, (...args: any[]) => Promise<number>>;
 }
+
+// Define a combined type for your contract
+type CertificateContract = ethers.Contract & ContractMethods;
 
 export class CertificateService {
     private provider: ethers.BrowserProvider | null = null;
-    private contract: ethers.Contract | null = null;
+    private contract: CertificateContract | null = null;
     private signer: ethers.Signer | null = null;
 
     constructor() {
@@ -50,7 +52,7 @@ export class CertificateService {
 
     async init(): Promise<void> {
         if (!this.provider) {
-          throw new Error('No provider available');
+        throw new Error('No provider available');
         }
         try {
             await this.provider.send('eth_requestAccounts', []);
@@ -103,7 +105,7 @@ export class CertificateService {
             }
 
             this.signer = await this.provider.getSigner();
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
+            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as CertificateContract;
 
             return accounts[0];
         } catch (error: any) {
@@ -115,8 +117,7 @@ export class CertificateService {
         }
     }
     
-    async getContract(): Promise<ethers.Contract> {
-
+    async getContract(): Promise<CertificateContract> {
         if (!this.contract) {
 
             if (!this.signer) {
@@ -124,9 +125,7 @@ export class CertificateService {
                 throw new Error("Wallet not connected");
 
             }
-
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
-
+            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as CertificateContract;
         }
 
         return this.contract;
@@ -173,15 +172,13 @@ export class CertificateService {
             }
 
             // Estimate gas first
-            const gasEstimate = await this.contract.issueCertificate.estimateGas(recipientName);
+            const gasEstimate = await this.contract.estimateGas.issueCertificate(recipientName);
             
             // Add 20% buffer to gas estimate
-            const gasLimit = Math.floor(gasEstimate.toString() * 1.2);
+            const gasLimit = Math.floor(Number(gasEstimate.toString()) * 1.2);
 
             // Send transaction with gas limit
-            const tx = await this.contract.issueCertificate(recipientName, {
-                gasLimit
-            });
+            const tx = await this.contract.issueCertificate(recipientName);
 
             const receipt = await tx.wait();
             

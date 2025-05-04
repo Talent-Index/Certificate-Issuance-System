@@ -2,6 +2,29 @@
 import { useState, useEffect } from 'react';
 import { certificateService } from '@/utils/blockchain';
 
+// Import from a toast library like react-hot-toast or create a custom toast component
+import { toast as hotToast } from '@/hooks/use-toast';
+
+function toast({ title, description, variant = 'default' }: {
+    title: string;
+    description: string;
+    variant?: 'default' | 'destructive'
+}) {
+    const message = `${title}: ${description}`;
+    if (variant === 'destructive') {
+        hotToast({
+            title: message,
+            variant: "destructive",
+        });
+    } else {
+        hotToast({
+            title: message,
+            variant: "default",
+        });
+    }
+}
+
+
 export const ContractStatus: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
     const [address, setAddress] = useState<string | null>(null);
@@ -101,6 +124,23 @@ export const ContractStatus: React.FC = () => {
                     >
                         Reconnect
                     </button>
+                    <form onSubmit={handleIssueCertificate} className="mt-4">
+                        <input
+                            type="text"
+                            name="recipientName"
+                            placeholder="Recipient Name"
+                            className="px-4 py-2 border rounded"
+                            required
+                        />
+                        <button
+                            type="submit"
+                            disabled={isIssuing}
+                            className="ml-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 
+                            disabled:bg-gray-400 transition-colors"
+                        >
+                            {isIssuing ? 'Issuing...' : 'Issue Certificate'}
+                        </button>
+                    </form>
                 </div>
             )}
         </div>
