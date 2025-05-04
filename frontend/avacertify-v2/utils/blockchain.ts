@@ -48,13 +48,9 @@ interface ContractMethods {
    };
 }
 
-/**
- * CertificateService provides a high-level interface for interacting with the certificate smart contract.
- * It manages wallet connection, contract interaction, and certificate/NFT issuance and management.
- *
- * The class is designed to be used in a browser environment with MetaMask or a compatible wallet.
- * It exposes methods for issuing, revoking, verifying, and retrieving certificates, as well as minting NFT certificates.
- */
+// Define a combined type for your contract
+type CertificateContract = ethers.Contract & ContractMethods;
+
 export class CertificateService {
   getProvider(): ethers.BrowserProvider {
     if (!this.provider) {

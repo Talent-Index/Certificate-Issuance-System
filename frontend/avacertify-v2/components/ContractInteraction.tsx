@@ -8,7 +8,12 @@ import { toast } from '@/hooks/use-toast';
  * Provides wallet connection and certificate management functionality
  * @returns React component for contract interaction
  */
-const ContractInteraction: React.FC = () => {
+const ContractInteraction = () => {
+    // This component is currently empty. You can implement it or remove it if not needed.
+}
+
+
+export const ContractStatus: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
     const [address, setAddress] = useState<string | null>(null);
     const [isIssuing, setIsIssuing] = useState(false);
@@ -138,6 +143,23 @@ const ContractInteraction: React.FC = () => {
                     >
                         Reconnect
                     </button>
+                    <form onSubmit={handleIssueCertificate} className="mt-4">
+                        <input
+                            type="text"
+                            name="recipientName"
+                            placeholder="Recipient Name"
+                            className="px-4 py-2 border rounded"
+                            required
+                        />
+                        <button
+                            type="submit"
+                            disabled={isIssuing}
+                            className="ml-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 
+                            disabled:bg-gray-400 transition-colors"
+                        >
+                            {isIssuing ? 'Issuing...' : 'Issue Certificate'}
+                        </button>
+                    </form>
                 </div>
             )}
             <div className="mt-4 flex space-x-2">
