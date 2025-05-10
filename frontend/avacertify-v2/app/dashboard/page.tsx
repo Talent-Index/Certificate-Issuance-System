@@ -56,6 +56,7 @@ export default function Dashboard() {
       try {
         const service = new CertificateService();
         await service.init();
+        await service.connectWallet(); // Add this line
         setCertificateService(service);
         toast({
           title: "Connected",
@@ -119,8 +120,7 @@ export default function Dashboard() {
       let certificateId;
       try {
         certificateId = await certificateService.issueCertificate(
-          recipientName,
-          recipientAddress
+          recipientName
         );
       } catch (error: any) {
         console.error("Certificate issuance failed:", error);

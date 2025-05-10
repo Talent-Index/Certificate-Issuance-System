@@ -1,6 +1,6 @@
 // utils/blockchain.ts
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI, AVALANCHE_FUJI_CONFIG } from '../utils/contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, Educhain_Test_CONFIG } from '../utils/contractConfig';
 
 export interface Certificate {
   id: string
@@ -32,14 +32,16 @@ interface ContractMethods {
     issueCertificate(recipientName: string): Promise<any>;
     getCertificate(id: string): Promise<any>;
     revokeCertificate(id: string): Promise<any>;
-    estimateGas: {
-        [key in ContractMethodName]: (...args: any[]) => Promise<number>;
-    };
+    verifyCertificate(id: string): Promise<boolean>;
+    estimateGas: Record<ContractMethodName, (...args: any[]) => Promise<number>>;
 }
+
+// Define a combined type for your contract
+type CertificateContract = ethers.Contract & ContractMethods;
 
 export class CertificateService {
     private provider: ethers.BrowserProvider | null = null;
-    private contract: (ethers.Contract & ContractMethods) | null = null;
+    private contract: CertificateContract | null = null;
     private signer: ethers.Signer | null = null;
 
     constructor() {
@@ -50,7 +52,7 @@ export class CertificateService {
 
     async init(): Promise<void> {
         if (!this.provider) {
-          throw new Error('No provider available');
+        throw new Error('No provider available');
         }
         try {
             await this.provider.send('eth_requestAccounts', []);
@@ -76,7 +78,7 @@ export class CertificateService {
                 }
                 await (window.ethereum as any).request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: AVALANCHE_FUJI_CONFIG.chainId }],
+                    params: [{ chainId: Educhain_Test_CONFIG.chainId }],
                 });
             } catch (switchError: any) {
                 // This could be due to the network not existing or the user rejecting the switch
@@ -87,7 +89,7 @@ export class CertificateService {
                         }
                         await (window.ethereum as any).request({
                             method: 'wallet_addEthereumChain',
-                            params: [AVALANCHE_FUJI_CONFIG],
+                            params: [Educhain_Test_CONFIG],
                         });
                     } catch (addError) {
                         console.error('Error adding Avalanche Fuji network:', addError);
@@ -103,7 +105,7 @@ export class CertificateService {
             }
 
             this.signer = await this.provider.getSigner();
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
+            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as CertificateContract;
 
             return accounts[0];
         } catch (error: any) {
@@ -115,8 +117,7 @@ export class CertificateService {
         }
     }
     
-    async getContract(): Promise<ethers.Contract> {
-
+    async getContract(): Promise<CertificateContract> {
         if (!this.contract) {
 
             if (!this.signer) {
@@ -124,9 +125,7 @@ export class CertificateService {
                 throw new Error("Wallet not connected");
 
             }
-
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
-
+            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as CertificateContract;
         }
 
         return this.contract;
@@ -161,50 +160,44 @@ export class CertificateService {
         };
     }
 
-    async issueCertificate(recipientName: string, recipientAddress: string): Promise<string | null> {
-        if (!this.contract || !await this.validateTransaction('issueCertificate', [recipientName])) {
-            throw new Error('Transaction validation failed');
+    async issueCertificate(recipientName: string): Promise<string | null> {
+        if (!this.contract || !this.provider) {
+            throw new Error('Contract or provider not initialized');
         }
 
         try {
-            // First issue the certificate
+            // Validate input
+            if (!recipientName?.trim()) {
+                throw new Error('Recipient name is required');
+            }
+
+            // Estimate gas first
+            const gasEstimate = await this.contract.estimateGas.issueCertificate(recipientName);
+            
+            // Add 20% buffer to gas estimate
+            const gasLimit = Math.floor(Number(gasEstimate.toString()) * 1.2);
+
+            // Send transaction with gas limit
             const tx = await this.contract.issueCertificate(recipientName);
+
             const receipt = await tx.wait();
+            
+            // Find CertificateIssued event
+            const event = receipt.events?.find(
+                (e: { event: string }) => e.event === 'CertificateIssued'
+            );
 
-            const event = receipt.events?.find((e: { event: string; }) => e.event === 'CertificateIssued');
             if (!event?.args?.id) {
-                throw new Error('Certificate issuance failed');
+                throw new Error('Certificate ID not found in event');
             }
 
-            const certificateId = event.args.id.toString();
+            return event.args.id.toString();
 
-            // Then mint the NFT
-            const metadata = await this.generateMetadata({
-                id: certificateId,
-                recipientName,
-                recipientAddress,
-                certificateType: "Certificate",
-                issueDate: Math.floor(Date.now() / 1000).toString(),
-                status: 'active',
-                institutionName: "Your Institution"
-            });
-
-            // Upload metadata to IPFS (implement this)
-            const metadataUri = await this.uploadMetadataToIPFS(metadata);
-
-            // Mint NFT with confirmation dialog
-            if (window.confirm('Would you like to mint an NFT certificate? This requires an additional transaction.')) {
-                const nftTx = await this.contract.mintCertificateNFT(
-                    recipientAddress,
-                    certificateId,
-                    metadataUri
-                );
-                await nftTx.wait();
-            }
-
-            return certificateId;
         } catch (error) {
-            console.error('Error in certificate issuance:', error);
+            console.error('Error issuing certificate:', error);
+            if (error instanceof Error) {
+                throw new Error(`Failed to issue certificate: ${error.message}`);
+            }
             throw error;
         }
     }
