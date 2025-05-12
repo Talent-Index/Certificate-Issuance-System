@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, LayoutDashboard, CheckCircle, Info, User, Bell } from "lucide-react"
+import { Menu, Home, LayoutDashboard, CheckCircle, Info, User, Bell, Settings } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { WalletConnect } from "./wallet-connect"
 import { motion } from "framer-motion"
@@ -17,6 +17,7 @@ const navItems = [
   { name: "Verify", href: "/verify", icon: CheckCircle },
   { name: "About", href: "/about", icon: Info },
   { name: "Profile", href: "/profile", icon: User },
+  { name: "Admin", href: "/admin", icon: Settings },
 ]
 
 export function Navigation() {
