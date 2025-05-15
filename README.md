@@ -392,3 +392,75 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with ❤️ for secure, decentralized credential management**
+## 🔧 Project Structure
+
+### Frontend (Next.js)
+
+- **Components:** Reusable UI components (`/components` directory).
+- **Pages:** Main entry points for the application (`/pages` directory).
+- **Public Assets:** Static files such as images (`/public` directory).
+- **Styles:** Global styles (`/styles` directory).
+- **TypeScript Config:** Compiler options in `tsconfig.json`.
+- **Package Config:** Dependencies and scripts in `package.json`.
+
+### Backend
+
+- **App Entry Point:** Server logic in `src/app.ts`.
+- **Type Definitions:** Shared types/interfaces in `src/types/index.ts`.
+- **Database:** Firebase integration for user profiles and waitlist.
+
+## 🏗️ Getting Started
+
+### Frontend Setup:
+
+```sh
+ cd frontend
+ npm install
+ npm run dev
+```
+
+### Backend Setup:
+
+```sh
+ cd backend
+ npm install
+ npm start
+```
+
+
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
+
+## 👥 Team Members
+
+- **Ian Macharia** - Smart Contract Developer  macharia.gichoya@gmail.com
+- **Sharon Kitavi** - Backend Developer  -sharonkmwikali@gmail.com
+- **Farhiya Omar** - Backend Developer  -farhiyaomar24@gmail.com
+- **Salma Adam** - Smart Contract Developer  -salmaadambakari@gmail.com
+- **Linet Mugwanja** - Frontend Developer  -mugwanjalk@gmail.com
+- **Stan** - Backend Developer             -e.n.ndegwa00@gmail.com
+- **Truth** - Frontend Developer  trutherkadi@gmail.com
+
+## 📢 Additional Resources
+
+🔗 [Pitch Deck]([https://drive.google.com/file/d/1G2SWkM36Go3ImLoS5zosMxQxY2-vcMPV/view?usp=drivesdk](https://gamma.app/docs/AvaCertify-Revolutionizing-Credential-Management--ctdoowmvbvdevl2?mode=doc )
+
+## ⭐ Next Steps
+
+- **Enhance UI/UX:** Improve the frontend for a better user experience.
+- **Smart Contract Audit:** Conduct a security audit for robustness.
+- **Multi-Chain Deployment:** Expand to other blockchain networks.{not decided}
+- **Automated Issuance:** AI-powered bulk certificate issuance.
+- **Mobile App Development:** Build a mobile-friendly version.
+- **Institutional Partnerships:** Collaborate with universities and certification bodies.
+- **Community Engagement:** Grow developer and user adoption.
+
+---
+
+
+
+
+
+
