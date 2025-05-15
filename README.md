@@ -146,7 +146,7 @@ This project is licensed under the **MIT License**.
 
 ## 📢 Additional Resources
 
-🔗 [Pitch Deck]((https://gamma.app/docs/AvaCertify-Revolutionizing-Credential-Management--ctdoowmvbvdevl2?mode=doc))
+🔗 [Pitch Deck]([https://gamma.app/docs/AvaCertify-Revolutionizing-Credential-Management--ctdoowmvbvdevl2?mode=doc])
 
 ## ⭐ Next Steps
 
