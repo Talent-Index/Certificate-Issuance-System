@@ -19,7 +19,7 @@ export const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3" // 
 export const CONTRACT_ABI = [
     // Replace with your contract's ABI
 
-    {
+{
       "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
@@ -334,35 +334,6 @@ export const CONTRACT_ABI = [
         }
       ],
       "name": "issueCertificate",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "certificateId",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "certificateId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "tokenURI",
-          "type": "string"
-        }
-      ],
-      "name": "mintCertificateNFT",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -485,5 +456,4 @@ export const CONTRACT_ABI = [
       "stateMutability": "view",
       "type": "function"
     }
-];
-
+  ]
