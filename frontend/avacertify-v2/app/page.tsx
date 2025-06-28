@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Shield, Eye, CheckCircle, Clock, FileX } from "lucide-react"
 import Link from "next/link"
 import type { ComponentProps } from "@/types/custom";
+import { useMemo } from "react";
+
 
 const FeatureCard = ({ icon: Icon, title, description }: ComponentProps) => (
   <Card className="group hover:shadow-lg transition-all duration-300 dark:hover:shadow-primary/5">
@@ -16,23 +18,37 @@ const FeatureCard = ({ icon: Icon, title, description }: ComponentProps) => (
   </Card>
 )
 
-const BackgroundAnimation = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {[...Array(20)].map((_, i) => (
-      <div
-        key={i}
-        className="absolute bg-primary/10 rounded-full animate-blob"
-        style={{
-          width: Math.random() * 300 + 50,
-          height: Math.random() * 300 + 50,
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
-          animationDelay: `${Math.random() * 10}s`,
-        }}
-      />
-    ))}
-  </div>
-)
+const BackgroundAnimation = () => {
+  // Generate random blob styles only on the client, and only once per mount
+  const blobs = useMemo(() => {
+    return [...Array(20)].map((_, i) => {
+      const width = Math.random() * 300 + 50;
+      const height = Math.random() * 300 + 50;
+      const top = `${Math.random() * 100}%`;
+      const left = `${Math.random() * 100}%`;
+      const animationDelay = `${Math.random() * 10}s`;
+      return (
+        <div
+          key={i}
+          className="absolute bg-primary/10 rounded-full animate-blob"
+          style={{
+            width,
+            height,
+            top,
+            left,
+            animationDelay,
+          }}
+        />
+      );
+    });
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {blobs}
+    </div>
+  );
+};
 
 export default function Home() {
   return (

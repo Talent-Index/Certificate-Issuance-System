@@ -1,5 +1,7 @@
 // Browser-compatible IPFS service using Pinata
-import axios from 'axios';
+import axios from 'axios'
+require('dotenv').config();
+
 
 export class IPFSService {
     private pinataApiKey: string;
@@ -11,9 +13,13 @@ export class IPFSService {
         this.pinataApiKey = process.env.PINATA_API_KEY || '';
         this.pinataApiSecret = process.env.PINATA_API_SECRET || '';
 
-        if (!this.pinataApiKey || !this.pinataApiSecret) {
+        // Only throw error if running on server (Node.js)
+        if (typeof window === "undefined" && (!this.pinataApiKey || !this.pinataApiSecret)) {
             throw new Error('Pinata API keys not found in environment variables');
         }
+        // In the browser, allow instantiation, but API calls will fail if keys are not set
+        this.pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY || '';
+        this.pinataApiSecret = process.env.NEXT_PUBLIC_PINATA_API_SECRET|| '';
     }
 
     generateMetadata(name: string, description: string, imageCID: string, color: string, issuer: string) {
@@ -148,4 +154,5 @@ export class IPFSService {
 // }
 
 
+// module.exports = IPFSService;
 // module.exports = IPFSService;
