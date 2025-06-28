@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Layout } from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,6 +27,7 @@ export default function AdminPage() {
         documentUrl: ""
     })
     const [isIssuing, setIsIssuing] = useState(false)
+    const [walletAddress, setWalletAddress] = useState<string | null>(null)
     const { toast } = useToast()
 
     // Initialize IPFS service - in a real app you might want to do this in a context or hook
@@ -36,6 +37,24 @@ export default function AdminPage() {
     } catch (error) {
         console.error("Failed to initialize IPFS service:", error);
     }
+
+    // Ensure wallet is connected and certificateService is initialized with signer
+    useEffect(() => {
+        const ensureWallet = async () => {
+            try {
+                const address = await certificateService.getConnectedAddress();
+                if (!address) {
+                    const connected = await certificateService.connectWallet();
+                    setWalletAddress(connected);
+                } else {
+                    setWalletAddress(address);
+                }
+            } catch (error) {
+                setWalletAddress(null);
+            }
+        };
+        ensureWallet();
+    }, []);
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -75,7 +94,22 @@ export default function AdminPage() {
         setIsIssuing(true)
 
         try {
-            const formData = new FormData(event.currentTarget)
+            // Check wallet connection before proceeding
+            const address = await certificateService.getConnectedAddress();
+            if (!address) {
+                toast({
+                    title: "Wallet Not Connected",
+                    description: "Please connect your wallet before issuing a certificate.",
+                    variant: "destructive",
+                });
+                setIsIssuing(false);
+                return;
+            }
+
+            // Ensure event.currentTarget is a form element
+            const form = event.currentTarget as HTMLFormElement;
+            const formData = new FormData(form);
+
             const recipientAddress = formData.get("recipientAddress") as string
             const recipientName = formData.get("recipientName") as string
             const certificateType = formData.get("certificateType") as string
@@ -101,35 +135,48 @@ export default function AdminPage() {
             const metadataHash = await ipfsService.uploadJSON(metadata);
             const metadataUrl = ipfsService.getGatewayUrl(metadataHash);
 
-            // Update state with metadata hash
             setUploadState(prev => ({ ...prev, metadataHash }));
 
-            console.log("Document URL:", uploadState.documentUrl);
-            console.log("Metadata URL:", metadataUrl);
+            // Issue certificate on blockchain (new signature)
+            const contract = await certificateService.getContract();
 
-            // Issue certificate on blockchain
-            const contract = certificateService.getContract();
-            const resolvedContract = await contract;
-
-            // Estimate gas for the transaction (parameters based on your smart contract)
-            // @ts-expect-error: Dynamic contract method call
-            const gasEstimate = await resolvedContract.estimateGas["issueCertificate"](
+            // Estimate gas for the new function
+            const gasEstimate = await contract.estimateGas(
+                "issueCertificate",
+                recipientName,
                 recipientAddress,
-                metadataHash  // Pass the metadata IPFS hash to the contract
+                metadataHash
             );
 
-            // Execute the transaction with the same parameters
-            
-            const tx = await resolvedContract["issueCertificate"](
+            // Issue certificate and get certificateId
+            const tx = await contract["issueCertificate"](
+                recipientName,
                 recipientAddress,
                 metadataHash,
                 {
-                    gasLimit: Math.ceil(Number(gasEstimate) * 1.2) // Add 20% buffer
+                    gasLimit: Math.ceil(Number(gasEstimate) * 1.2)
                 }
             );
-
-            // Wait for transaction to be mined
             const receipt = await tx.wait();
+
+            // Extract certificateId from event or receipt
+            let certificateId;
+            if (receipt.events && receipt.events.length > 0) {
+                const issuedEvent = receipt.events.find((e: any) => e.event === "CertificateIssued");
+                if (issuedEvent && issuedEvent.args && issuedEvent.args.id) {
+                    certificateId = issuedEvent.args.id.toString();
+                }
+            }
+
+            // Mint NFT with metadata URI
+            if (certificateId) {
+                const mintTx = await contract.mintCertificateNFT(
+                    recipientAddress,
+                    certificateId,
+                    metadataUrl
+                );
+                await mintTx.wait();
+            }
 
             toast({
                 title: "Certificate issued successfully!",

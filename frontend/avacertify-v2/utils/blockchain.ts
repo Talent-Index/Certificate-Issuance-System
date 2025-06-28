@@ -50,7 +50,7 @@ export class CertificateService {
 
     async init(): Promise<void> {
         if (!this.provider) {
-          throw new Error('No provider available');
+            throw new Error('No provider available');
         }
         try {
             await this.provider.send('eth_requestAccounts', []);
@@ -116,21 +116,17 @@ export class CertificateService {
     }
     
     async getContract(): Promise<ethers.Contract> {
-
-        if (!this.contract) {
-
-            if (!this.signer) {
-
-                throw new Error("Wallet not connected");
-
-            }
-
-            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
-
+        // Always get the latest signer
+        if (!this.signer && this.provider) {
+            this.signer = await this.provider.getSigner();
         }
-
+        if (!this.contract) {
+            if (!this.signer) {
+                throw new Error("Wallet not connected");
+            }
+            this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
+        }
         return this.contract;
-
     }
 
     private async validateTransaction(method: ContractMethodName, params: any[]): Promise<boolean> {
@@ -259,14 +255,15 @@ export class CertificateService {
     }
 
     async getConnectedAddress(): Promise<string | null> {
+        if (!this.signer && this.provider) {
+            this.signer = await this.provider.getSigner();
+        }
         if (!this.signer) {
-            console.warn('Wallet not connected');
             return null;
         }
         try {
             return await this.signer.getAddress();
         } catch (error) {
-            console.error('Error getting address:', error);
             return null;
         }
     }
