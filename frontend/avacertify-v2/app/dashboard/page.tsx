@@ -13,12 +13,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PlusCircle, FileText, Copy, ExternalLink } from "lucide-react"
-import { motion } from "framer-motion"
+import dynamic from "next/dynamic"
 import { useToast } from "@/hooks/use-toast"
 import { type Certificate, placeholderCertificates } from "@/lib/types"
-import { CertificateService } from "@/utils/blockchain";
+import { certificateService } from "@/utils/blockchain";
 
-interface FormData {
+// Lazy-load framer-motion's motion.div to reduce initial bundle size
+const MotionDiv = dynamic(
+  () => import('framer-motion').then((mod) => mod.motion.div),
+  { ssr: false }
+);
+
+interface CertificateFormData {
   recipientName: string;
   recipientAddress: string;
   certificateType: string;
@@ -32,7 +38,7 @@ export default function Dashboard() {
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [certificateService, setCertificateService] = useState<CertificateService | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
   const [isIssuing, setIsIssuing] = useState(false)
   const { toast } = useToast()
 
@@ -54,9 +60,8 @@ export default function Dashboard() {
   useEffect(() => {
     const initBlockchain = async () => {
       try {
-        const service = new CertificateService();
-        await service.init();
-        setCertificateService(service);
+        await certificateService.init();
+        setIsConnected(true);
         toast({
           title: "Connected",
           description: "Wallet connected successfully",
@@ -79,7 +84,7 @@ export default function Dashboard() {
     event.preventDefault();
     console.log("Starting certificate issuance...");
     
-    if (!certificateService) {
+  if (!isConnected) {
       console.error("Blockchain service not initialized");
       toast({
         title: "Connection Error",
@@ -90,7 +95,7 @@ export default function Dashboard() {
     }
 
     setIsIssuing(true);
-    const formData = new FormData(event.currentTarget);
+  const formData = new FormData(event.currentTarget);
     
     try {
       const data = {
@@ -256,7 +261,7 @@ export default function Dashboard() {
                       placeholder="Enter any additional information about the certificate..."
                     />
                   </div>
-                  <Button type="submit" disabled={isIssuing || !certificateService}>
+                  <Button type="submit" disabled={isIssuing || !isConnected}>
                     {isIssuing ? (
                       <>
                         <span className="spinner mr-2"></span>
@@ -275,8 +280,8 @@ export default function Dashboard() {
           </TabsContent>
           <TabsContent value="manage">
             <div className="space-y-4">
-              {certificates.map((cert) => (
-                <motion.div
+                  {certificates.map((cert) => (
+                <MotionDiv
                   key={cert.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -311,7 +316,7 @@ export default function Dashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </MotionDiv>
               ))}
             </div>
           </TabsContent>

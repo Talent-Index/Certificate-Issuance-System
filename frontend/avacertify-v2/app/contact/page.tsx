@@ -80,7 +80,7 @@ export default function Contact() {
                     <Mail className="h-6 w-6 text-primary" />
                     <div>
                       <h3 className="font-semibold">Email</h3>
-                      <p className="text-sm text-muted-foreground">contact@avacertify.com</p>
+                      <p className="text-sm text-muted-foreground">avacertify@gmail.com</p>
                     </div>
                   </div>
                 </CardContent>
@@ -90,8 +90,8 @@ export default function Contact() {
                   <div className="flex items-center space-x-4">
                     <Phone className="h-6 w-6 text-primary" />
                     <div>
-                      <h3 className="font-semibold">Phone</h3>
-                      <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                      <h3 className="font-semibold">LinkedIn</h3>
+                      <p className="text-sm text-muted-foreground">https://www.linkedin.com/company/avacertify/ </p>
                     </div>
                   </div>
                 </CardContent>
@@ -102,7 +102,7 @@ export default function Contact() {
                     <MapPin className="h-6 w-6 text-primary" />
                     <div>
                       <h3 className="font-semibold">Location</h3>
-                      <p className="text-sm text-muted-foreground">San Francisco, CA</p>
+                      <p className="text-sm text-muted-foreground">Nairobi, KE</p>
                     </div>
                   </div>
                 </CardContent>
@@ -125,4 +125,3 @@ export default function Contact() {
     </Layout>
   )
 }
-

@@ -14,10 +14,10 @@ import { useToast } from "../hooks/use-toast"
 const navItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Admin", href: "/admin", icon: Settings },
   { name: "Verify", href: "/verify", icon: CheckCircle },
   { name: "About", href: "/about", icon: Info },
   { name: "Profile", href: "/profile", icon: User },
-  { name: "Admin", href: "/admin", icon: Settings },
 ]
 
 export function Navigation() {
@@ -48,7 +48,7 @@ export function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             />
-            <span className="font-bold text-xl gradient-text">AvaCertify</span>
+            <span className="font-bold text-xl bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">AvaCertify</span>
           </Link>
           <nav className="hidden md:flex space-x-1">
             {navItems.map((item) => (
@@ -126,5 +126,3 @@ export function Navigation() {
     </motion.header>
   )
 }
-
-

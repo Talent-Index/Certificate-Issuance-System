@@ -1,3 +1,4 @@
+
 export type WalletType = "metamask" | "core" | null;
 export type ContractError = Error & { code?: number };
 
