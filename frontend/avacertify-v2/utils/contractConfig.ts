@@ -15,7 +15,7 @@ export const AVALANCHE_FUJI_CONFIG = {
     blockExplorerUrls: ['https://testnet.snowtrace.io/']
 };
     // Contract details
-export const CERTIFICATE_SYSTEM_ADDRESS = "0xb90c5B3fE62f463AF697B6bC53ac579b0B2f0F2A" // CertificateIssuanceSystem deployed on Fuji testnet
+export const CERTIFICATE_SYSTEM_ADDRESS = "0x9213c9e46e950dcb316ba35126f39299bb0ecaaa" // CertificateIssuanceSystem deployed on Fuji testnet
 export const NFT_CERTIFICATE_ADDRESS = "0xdE5b750ebBc0A92a53614f18081E72609F09BC69" // OrganizationNFTCertificate deployed on Fuji testnet
 
 // Keep the old export for backward compatibility

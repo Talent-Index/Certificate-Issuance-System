@@ -148,7 +148,7 @@ Key settings in `src/CertificateIssuanceSystem.sol`:
 Located in `frontend/avacertify-v2/utils/contractConfig.ts`:
 ```typescript
 export const CONTRACT_ADDRESSES = {
-  CERTIFICATE_SYSTEM: "0xb90c5B3fE62f463AF697B6bC53ac579b0B2f0F2A",
+  CERTIFICATE_SYSTEM: "0x9213c9e46e950dcb316ba35126f39299bb0ecaaa",
   NFT_CERTIFICATE: "0xdE5b750ebBc0A92a53614f18081E72609F09BC69"
 };
 ```
