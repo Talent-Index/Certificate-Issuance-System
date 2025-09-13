@@ -5,11 +5,11 @@ import { Twitter, Github, Linkedin, Mail } from "lucide-react"
 import { DiscIcon as Discord } from "lucide-react"
 
 const socialLinks = [
-  { name: "Twitter", icon: Twitter, href: "https://twitter.com/avacertify" },
-  { name: "GitHub", icon: Github, href: "https://github.com/avacertify" },
-  { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com/company/avacertify" },
-  { name: "Discord", icon: Discord, href: "https://discord.gg/avacertify" },
-  { name: "Email", icon: Mail, href: "mailto:contact@avacertify.com" },
+  /*{ name: "Twitter", icon: Twitter, href: "https://twitter.com/avacertify" }, */
+  { name: "GitHub", icon: Github, href: "https://github.com/Avalanche-Team1-Africa/Certificate-Issuance-System" },
+  { name: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/company/avacertify/" },
+  /* { name: "Discord", icon: Discord, href: "https://discord.gg/avacertify" }, */
+  { name: "Email", icon: Mail, href: "mailto:avacertify@gmail.com.com" },
 ]
 
 export function Footer() {
@@ -104,4 +104,3 @@ export function Footer() {
     </footer>
   )
 }
-

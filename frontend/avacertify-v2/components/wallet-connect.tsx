@@ -147,4 +147,3 @@ export function WalletConnect() {
     </DropdownMenu>
   )
 }
-

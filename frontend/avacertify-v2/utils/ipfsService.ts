@@ -1,25 +1,23 @@
 // Browser-compatible IPFS service using Pinata
-import axios from 'axios'
-require('dotenv').config();
-
 
 export class IPFSService {
     private pinataApiKey: string;
     private pinataApiSecret: string;
 
     constructor() {
-        // In a real app, you would get these from environment variables
-        // For browser security, consider using a backend proxy
-        this.pinataApiKey = process.env.PINATA_API_KEY || '';
-        this.pinataApiSecret = process.env.PINATA_API_SECRET || '';
-
-        // Only throw error if running on server (Node.js)
-        if (typeof window === "undefined" && (!this.pinataApiKey || !this.pinataApiSecret)) {
-            throw new Error('Pinata API keys not found in environment variables');
-        }
-        // In the browser, allow instantiation, but API calls will fail if keys are not set
+        // Get API keys from environment variables
         this.pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY || '';
-        this.pinataApiSecret = process.env.NEXT_PUBLIC_PINATA_API_SECRET|| '';
+        this.pinataApiSecret = process.env.NEXT_PUBLIC_PINATA_API_SECRET || '';
+
+        if (!this.pinataApiKey || !this.pinataApiSecret) {
+            console.warn('Pinata API keys not found. IPFS functionality will be limited.');
+        }
+    }
+
+    private checkApiKeys(): void {
+        if (!this.pinataApiKey || !this.pinataApiSecret) {
+            throw new Error('Pinata API keys not configured. Please set NEXT_PUBLIC_PINATA_API_KEY and NEXT_PUBLIC_PINATA_API_SECRET in your .env.local file.');
+        }
     }
 
     generateMetadata(name: string, description: string, imageCID: string, color: string, issuer: string) {
@@ -35,6 +33,8 @@ export class IPFSService {
     }
 
     async uploadFile(file: File): Promise<string> {
+        this.checkApiKeys();
+        
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -49,42 +49,50 @@ export class IPFSService {
             });
             formData.append('pinataOptions', options);
 
-            const res = await axios.post(
-                "https://api.pinata.cloud/pinning/pinFileToIPFS",
-                formData,
-                {
-                    headers: {
-                        'Content-Type': `multipart/form-data;`,
-                        pinata_api_key: this.pinataApiKey,
-                        pinata_secret_api_key: this.pinataApiSecret,
-                    },
-                }
-            );
+            const response = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+                method: 'POST',
+                headers: {
+                    pinata_api_key: this.pinataApiKey,
+                    pinata_secret_api_key: this.pinataApiSecret,
+                },
+                body: formData
+            });
 
-            return res.data.IpfsHash;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result.IpfsHash;
         } catch (error) {
             console.error('Error uploading to IPFS:', error);
-            throw error;
+            throw new Error('Failed to upload file to IPFS. Please check your Pinata API credentials.');
         }
     }
 
     async uploadJSON(jsonData: any): Promise<string> {
+        this.checkApiKeys();
+        
         try {
-            const res = await axios.post(
-                "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-                jsonData,
-                {
-                    headers: {
-                        pinata_api_key: this.pinataApiKey,
-                        pinata_secret_api_key: this.pinataApiSecret,
-                    },
-                }
-            );
+            const response = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    pinata_api_key: this.pinataApiKey,
+                    pinata_secret_api_key: this.pinataApiSecret,
+                },
+                body: JSON.stringify(jsonData)
+            });
 
-            return res.data.IpfsHash;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result.IpfsHash;
         } catch (error) {
             console.error('Error uploading JSON to IPFS:', error);
-            throw error;
+            throw new Error('Failed to upload metadata to IPFS. Please check your Pinata API credentials.');
         }
     }
 

@@ -50,7 +50,7 @@ export class CertificateService {
 
     async init(): Promise<void> {
         if (!this.provider) {
-            throw new Error('No provider available');
+          throw new Error('No provider available');
         }
         try {
             await this.provider.send('eth_requestAccounts', []);
@@ -116,31 +116,28 @@ export class CertificateService {
     }
     
     async getContract(): Promise<ethers.Contract> {
-        // Always get the latest signer
-        if (!this.signer && this.provider) {
-            this.signer = await this.provider.getSigner();
-        }
+
         if (!this.contract) {
+
             if (!this.signer) {
+
                 throw new Error("Wallet not connected");
+
             }
+
             this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as ethers.Contract & ContractMethods;
+
         }
+
         return this.contract;
+
     }
 
-    private async validateTransaction(method: ContractMethodName, params: any[]): Promise<boolean> {
+    private async validateConnection(): Promise<boolean> {
         if (!this.contract || !this.signer) {
             throw new Error('Contract or signer not initialized');
         }
-
-        try {
-            const gasEstimate = await this.contract.estimateGas[method](...params);
-            return Number(gasEstimate) > 0;
-        } catch (error) {
-            console.error('Transaction validation failed:', error);
-            return false;
-        }
+        return true;
     }
 
     private async generateMetadata(certificate: Certificate): Promise<NFTMetadata> {
@@ -158,50 +155,55 @@ export class CertificateService {
     }
 
     async issueCertificate(recipientName: string, recipientAddress: string): Promise<string | null> {
-        if (!this.contract || !await this.validateTransaction('issueCertificate', [recipientName])) {
-            throw new Error('Transaction validation failed');
+        if (!this.contract || !this.signer) {
+            throw new Error('Contract or signer not initialized');
         }
 
         try {
-            // First issue the certificate
-            const tx = await this.contract.issueCertificate(recipientName);
-            const receipt = await tx.wait();
-
-            const event = receipt.events?.find((e: { event: string; }) => e.event === 'CertificateIssued');
-            if (!event?.args?.id) {
-                throw new Error('Certificate issuance failed');
-            }
-
-            const certificateId = event.args.id.toString();
-
-            // Then mint the NFT
-            const metadata = await this.generateMetadata({
-                id: certificateId,
+            // The contract function signature: issueCertificate(string _recipientName, address _owner)
+            console.log('Issuing certificate with:', { recipientName, recipientAddress });
+            
+            // Estimate gas first
+            const gasEstimate = await this.contract.estimateGas.issueCertificate(
                 recipientName,
-                recipientAddress,
-                certificateType: "Certificate",
-                issueDate: Math.floor(Date.now() / 1000).toString(),
-                status: 'active',
-                institutionName: "Your Institution"
-            });
+                recipientAddress
+            );
+            
+            const tx = await newFunction(gasEstimate);
+            
+            const receipt = await tx.wait();
+            console.log('Transaction receipt:', receipt);
 
-            // Upload metadata to IPFS (implement this)
-            const metadataUri = await this.uploadMetadataToIPFS(metadata);
-
-            // Mint NFT with confirmation dialog
-            if (window.confirm('Would you like to mint an NFT certificate? This requires an additional transaction.')) {
-                const nftTx = await this.contract.mintCertificateNFT(
-                    recipientAddress,
-                    certificateId,
-                    metadataUri
-                );
-                await nftTx.wait();
+            // Find the CertificateIssued event
+            let certificateId = null;
+            for (const log of receipt.logs) {
+                try {
+                    const parsedLog = this.contract.interface.parseLog(log);
+                    if (parsedLog && parsedLog.name === 'CertificateIssued') {
+                        certificateId = parsedLog.args.id.toString();
+                        console.log('Certificate issued with ID:', certificateId);
+                        break;
+                    }
+                } catch (e) {
+                    // Skip logs that can't be parsed
+                    continue;
+                }
             }
 
             return certificateId;
         } catch (error) {
             console.error('Error in certificate issuance:', error);
             throw error;
+        }
+
+        async function newFunction(this: any, gasEstimate: any) {
+            return await this.contract.issueCertificate(
+                recipientName,
+                recipientAddress,
+                {
+                    gasLimit: Math.ceil(Number(gasEstimate) * 1.2)
+                }
+            );
         }
     }
 
@@ -242,12 +244,23 @@ export class CertificateService {
     }
 
     async getCertificate(certificateId: string): Promise<Certificate | null> {
-        if (!await this.validateTransaction('getCertificate', [certificateId])) {
-            throw new Error('Transaction validation failed - potential security risk');
-        }
+        await this.validateConnection();
 
         try {
-            return await this.contract?.getCertificate(certificateId);
+            const certificate = await this.contract?.certificates(certificateId);
+            if (!certificate) {
+                return null;
+            }
+
+            return {
+                id: certificate.id.toString(),
+                recipientName: certificate.recipientName,
+                recipientAddress: certificate.owner,
+                certificateType: "Certificate",
+                issueDate: new Date(Number(certificate.issueDate) * 1000).toISOString(),
+                institutionName: "AvaCertify",
+                status: certificate.isValid ? 'active' : 'revoked'
+            };
         } catch (error) {
             console.error('Error getting certificate:', error);
             return null;
@@ -255,19 +268,18 @@ export class CertificateService {
     }
 
     async getConnectedAddress(): Promise<string | null> {
-        if (!this.signer && this.provider) {
-            this.signer = await this.provider.getSigner();
-        }
         if (!this.signer) {
+            console.warn('Wallet not connected');
             return null;
         }
         try {
             return await this.signer.getAddress();
         } catch (error) {
+            console.error('Error getting address:', error);
             return null;
         }
     }
 }
 
 // Export a singleton instance
-export const certificateService = new CertificateService();
+export const certificateService = new CertificateService();                         
