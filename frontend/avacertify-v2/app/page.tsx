@@ -48,7 +48,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20">
+  <section id="features" className="py-20">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-12 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -71,7 +71,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-br from-primary/10 to-secondary/5">
+  <section id="problem" className="py-20 bg-gradient-to-br from-primary/10 to-secondary/5">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-12 text-white">The Problem We Solve</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -108,7 +108,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-br from-primary/10 to-secondary/5">
+      <section id="security" className="py-20 bg-gradient-to-br from-primary/10 to-secondary/5">
         <div className="container mx-auto text-center">
           <div className="max-w-3xl mx-auto text-white">
             <h2 className="text-3xl text-primary font-bold mb-6">Ready to Get Started?</h2>
@@ -122,6 +122,16 @@ export default function Home() {
               </Link>
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* Pricing section inserted so footer /pricing anchor has a target */}
+      <section id="pricing" className="py-20">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-6">Pricing</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            AvaCertify is currently in early access. Pricing will be published shortly. For pilot programs and enterprise plans, contact us via the Connect section.
+          </p>
         </div>
       </section>
     </Layout>

@@ -21,17 +21,17 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/features" className="text-sm text-foreground/60 hover:text-primary">
+                <Link href="/#features" className="text-sm text-foreground/60 hover:text-primary">
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-sm text-foreground/60 hover:text-primary">
+                <Link href="/#pricing" className="text-sm text-foreground/60 hover:text-primary">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="/security" className="text-sm text-foreground/60 hover:text-primary">
+                <Link href="/#security" className="text-sm text-foreground/60 hover:text-primary">
                   Security
                 </Link>
               </li>
