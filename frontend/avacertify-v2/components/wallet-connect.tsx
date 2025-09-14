@@ -9,14 +9,21 @@ import { Wallet, ChevronDown } from "lucide-react"
 declare global {
   interface Window {
     ethereum?: {
-      request: (args: { method: string }) => Promise<string[]>
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      on: (event: string, handler: (...args: unknown[]) => void) => void;
+      removeListener: (event: string, handler: (...args: unknown[]) => void) => void;
     }
     avalanche?: {
-      request: (args: { method: string }) => Promise<string[]>
+      request: (args: { method: string; params?: unknown[] }) => Promise<string[]>
     }
   }
 }
 
+/**
+ * A React component that handles wallet connections for both MetaMask and Core wallets.
+ * Provides UI for connecting, disconnecting, and displaying connected wallet information.
+ * @returns A React component with wallet connection functionality
+ */
 export function WalletConnect() {
   const [account, setAccount] = useState<string | null>(null)
   const [, setWalletType] = useState<"metamask" | "core" | null>(null)
@@ -26,10 +33,15 @@ export function WalletConnect() {
     checkConnection()
   }, [])
 
+  /**
+   * Checks for any existing wallet connections on component mount.
+   * Attempts to connect to either MetaMask or Core wallet if they were previously connected.
+   * @returns Promise that resolves when connection check is complete
+   */
   const checkConnection = async (): Promise<void> => {
     if (typeof window.ethereum !== "undefined") {
       try {
-        const accounts = await window.ethereum.request({ method: "eth_accounts" })
+        const accounts = await window.ethereum.request({ method: "eth_accounts" }) as string[]
         if (accounts.length > 0) {
           setAccount(accounts[0])
           setWalletType("metamask")
@@ -50,11 +62,16 @@ export function WalletConnect() {
     }
   }
 
+  /**
+   * Initiates a connection to MetaMask wallet.
+   * Shows success or error toast notifications based on connection result.
+   * @returns Promise that resolves when MetaMask connection attempt is complete
+   */
   const connectMetaMask = async (): Promise<void> => {
     if (typeof window.ethereum !== "undefined") {
       try {
         await window.ethereum.request({ method: "eth_requestAccounts" })
-        const accounts = await window.ethereum.request({ method: "eth_accounts" })
+        const accounts = await window.ethereum.request({ method: "eth_accounts" }) as string[]
         setAccount(accounts[0])
         setWalletType("metamask")
         toast({
@@ -78,6 +95,11 @@ export function WalletConnect() {
     }
   }
 
+  /**
+   * Initiates a connection to Core wallet.
+   * Shows success or error toast notifications based on connection result.
+   * @returns Promise that resolves when Core wallet connection attempt is complete
+   */
   const connectCoreWallet = async (): Promise<void> => {
     if (typeof window.avalanche !== "undefined") {
       try {
@@ -106,6 +128,11 @@ export function WalletConnect() {
     }
   }
 
+  /**
+   * Disconnects the currently connected wallet.
+   * Resets account and wallet type states to null.
+   * Shows a notification toast when wallet is disconnected.
+   */
   const disconnectWallet = () => {
     setAccount(null)
     setWalletType(null)

@@ -14,6 +14,7 @@ import { PlusCircle, FileText, Copy, ExternalLink } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useToast } from "@/hooks/use-toast";
 import { Certificate, certificateService } from "@/utils/blockchain";
+import { ethers } from "ethers";
 
 const MotionDiv = dynamic(() => import("framer-motion").then((mod) => mod.motion.div), { ssr: false });
 
@@ -24,29 +25,6 @@ export default function Dashboard() {
   const [isConnected, setIsConnected] = useState(false);
   const [isIssuing, setIsIssuing] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const initBlockchain = async () => {
-      try {
-        await certificateService.init();
-        const address = await certificateService.connectWallet();
-        setIsConnected(true);
-        toast({
-          title: "Connected",
-          description: `Wallet connected: ${address.slice(0, 6)}...${address.slice(-4)}`,
-        });
-        fetchCertificates();
-      } catch (error: any) {
-        setIsConnected(false);
-        toast({
-          title: "Connection Error",
-          description: error.message || "Failed to connect wallet. Please ensure MetaMask is installed.",
-          variant: "destructive",
-        });
-      }
-    };
-    initBlockchain();
-  }, [toast]);
 
   const fetchCertificates = useCallback(async () => {
     try {
@@ -71,8 +49,32 @@ export default function Dashboard() {
   }, [toast]);
 
   useEffect(() => {
-    fetchCertificates();
-  }, [fetchCertificates]);
+    const initBlockchain = async () => {
+      try {
+        await certificateService.init();
+        const address = await certificateService.connectWallet();
+        setIsConnected(true);
+        toast({
+          title: "Connected",
+          description: `Wallet connected: ${address.slice(0, 6)}...${address.slice(-4)}`,
+        });
+      } catch (error: unknown) {
+        setIsConnected(false);
+        toast({
+          title: "Connection Error",
+          description: (error as Error).message || "Failed to connect wallet. Please ensure MetaMask is installed.",
+          variant: "destructive",
+        });
+      }
+    };
+    initBlockchain();
+  }, [toast]);
+
+  useEffect(() => {
+    if(isConnected) {
+      fetchCertificates();
+    }
+  }, [isConnected, fetchCertificates]);
 
   const handleIssueCertificate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -111,18 +113,41 @@ export default function Dashboard() {
       }
 
       const contract = await certificateService.getContract();
-      // ethers v6: pass all method arguments, then overrides as the last argument
-      const gasEstimate = await contract.estimateGas.issueCertificate(recipientName, recipientAddress);
-      const txResponse = await (contract as any).issueCertificate(
+
+      // Defensive check — avoid "cannot read properties of undefined"
+      if (!contract || typeof contract.issueCertificate !== "function") {
+        toast({
+          title: "Contract Error",
+          description: "Smart contract not initialized or missing issueCertificate method.",
+          variant: "destructive",
+        });
+        setIsIssuing(false);
+        return;
+      }
+
+      const estimateFn = (contract?.estimateGas as unknown as { [key: string]: (...args: unknown[]) => Promise<bigint> })?.issueCertificate;
+      if (typeof estimateFn !== "function") {
+        throw new Error("estimateGas.issueCertificate not available (contract mismatch or not connected)");
+      }
+      const gasEstimate = await estimateFn(recipientName, recipientAddress);
+
+      const callFn = (contract as unknown as { issueCertificate: (...args: unknown[]) => Promise<ethers.ContractTransactionResponse> })?.issueCertificate;
+      if (typeof callFn !== "function") {
+        throw new Error("contract.issueCertificate not callable");
+      }
+      const txResponse = await callFn(
         recipientName,
         recipientAddress,
         { gasLimit: Math.ceil(Number(gasEstimate) * 1.2) }
       );
+      
+      // ethers.js v5: wait for transaction using provider.waitForTransaction
+      // ethers.js v5: txResponse may not have a .hash property, use txResponse.transactionHash instead
       const receipt = await txResponse.wait();
 
       const newCertificate: Certificate = {
         id: certificateId,
-        transactionHash: receipt.transactionHash,
+        transactionHash: receipt?.hash ?? "",
         recipientName,
         recipientAddress,
         certificateType,
@@ -142,20 +167,20 @@ export default function Dashboard() {
       });
 
       event.currentTarget.reset();
-    } catch (error: any) {
+    } catch (error: unknown) {
       let message = "Failed to issue certificate";
-      if (error.code === 4001) {
+      if ((error as { code: number }).code === 4001) {
         message = "User rejected the transaction";
-      } else if (error.message.includes("insufficient funds")) {
+      } else if ((error as Error).message.includes("insufficient funds")) {
         message = "Insufficient funds in your wallet";
-      } else if (error.message.includes("network")) {
+      } else if ((error as Error).message.includes("network")) {
         message = "Please ensure you're connected to the Avalanche Fuji Testnet";
-      } else if (error.message.includes("Contract or signer not initialized")) {
+      } else if ((error as Error).message.includes("Contract or signer not initialized")) {
         message = "Wallet not connected. Please reconnect and try again.";
       }
       toast({
         title: "Error",
-        description: error.message || message,
+        description: (error as Error).message || message,
         variant: "destructive",
       });
     } finally {
@@ -215,127 +240,129 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="container py-10">
-        <h1 className="text-3xl font-bold mb-6">Institution Dashboard</h1>
-        <Tabs defaultValue="issue">
-          <TabsList className="mb-6">
-            <TabsTrigger value="issue">Issue Certificate</TabsTrigger>
-            <TabsTrigger value="manage">Manage Certificates</TabsTrigger>
-          </TabsList>
-          <TabsContent value="issue">
-            <Card>
-              <CardHeader>
-                <CardTitle>Issue New Certificate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleIssueCertificate} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="recipientName">Recipient Name</Label>
-                      <Input id="recipientName" name="recipientName" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="recipientAddress">Recipient Address</Label>
-                      <Input id="recipientAddress" name="recipientAddress" placeholder="0x..." required />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="institutionName">Institution Name</Label>
-                    <Input id="institutionName" name="institutionName" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="certificateType">Certificate Type</Label>
-                    <Select name="certificateType" required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select certificate type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="academic">Academic Degree</SelectItem>
-                        <SelectItem value="professional">Professional Certification</SelectItem>
-                        <SelectItem value="training">Training Completion</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="issueDate">Issue Date</Label>
-                      <Input type="date" id="issueDate" name="issueDate" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="expirationDate">Expiration Date (if applicable)</Label>
-                      <Input type="date" id="expirationDate" name="expirationDate" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="additionalDetails">Additional Details</Label>
-                    <Textarea
-                      id="additionalDetails"
-                      name="additionalDetails"
-                      placeholder="Enter any additional information about the certificate..."
-                    />
-                  </div>
-                  <Button type="submit" disabled={isIssuing || !isConnected}>
-                    {isIssuing ? (
-                      <>
-                        <span className="spinner mr-2"></span>
-                        Issuing...
-                      </>
-                    ) : (
-                      <>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Issue Certificate
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="manage">
-            <div className="space-y-4">
-              {certificates.map((cert) => (
-                <MotionDiv
-                  key={cert.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className={cert.status === "revoked" ? "border-red-500" : ""}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <h3 className="font-semibold flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-primary" />
-                            {cert.certificateType}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">Recipient: {cert.recipientName}</p>
-                          <p className="text-sm text-muted-foreground">Institution: {cert.institutionName}</p>
-                          <p className="text-sm text-muted-foreground">Issued: {cert.issueDate}</p>
-                          {cert.status === "revoked" && (
-                            <p className="text-sm font-semibold text-red-500">REVOKED</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => viewCertificateDetails(cert)}>
-                            View Details
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => revokeCertificate(cert.id)}
-                            disabled={cert.status === "revoked"}
-                          >
-                            {cert.status === "revoked" ? "Revoked" : "Revoke"}
-                          </Button>
-                        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-5xl py-10">
+          <h1 className="text-3xl font-bold mb-6 text-center">Institution Dashboard</h1>
+          <Tabs defaultValue="issue">
+            <TabsList className="mb-6">
+              <TabsTrigger value="issue">Issue Certificate</TabsTrigger>
+              <TabsTrigger value="manage">Manage Certificates</TabsTrigger>
+            </TabsList>
+            <TabsContent value="issue">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Issue New Certificate</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleIssueCertificate} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="recipientName">Recipient Name</Label>
+                        <Input id="recipientName" name="recipientName" required />
                       </div>
-                    </CardContent>
-                  </Card>
-                </MotionDiv>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                      <div className="space-y-2">
+                        <Label htmlFor="recipientAddress">Recipient Address</Label>
+                        <Input id="recipientAddress" name="recipientAddress" placeholder="0x..." required />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="institutionName">Institution Name</Label>
+                      <Input id="institutionName" name="institutionName" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="certificateType">Certificate Type</Label>
+                      <Select name="certificateType" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select certificate type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="academic">Academic Degree</SelectItem>
+                          <SelectItem value="professional">Professional Certification</SelectItem>
+                          <SelectItem value="training">Training Completion</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="issueDate">Issue Date</Label>
+                        <Input type="date" id="issueDate" name="issueDate" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="expirationDate">Expiration Date (if applicable)</Label>
+                        <Input type="date" id="expirationDate" name="expirationDate" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="additionalDetails">Additional Details</Label>
+                      <Textarea
+                        id="additionalDetails"
+                        name="additionalDetails"
+                        placeholder="Enter any additional information about the certificate..."
+                      />
+                    </div>
+                    <Button type="submit" disabled={isIssuing || !isConnected}>
+                      {isIssuing ? (
+                        <>
+                          <span className="spinner mr-2"></span>
+                          Issuing...
+                        </>
+                      ) : (
+                        <>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Issue Certificate
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="manage">
+              <div className="space-y-4">
+                {certificates.map((cert) => (
+                  <MotionDiv
+                    key={cert.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className={cert.status === "revoked" ? "border-red-500" : ""}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <h3 className="font-semibold flex items-center gap-2">
+                              <FileText className="h-5 w-5 text-primary" />
+                              {cert.certificateType}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">Recipient: {cert.recipientName}</p>
+                            <p className="text-sm text-muted-foreground">Institution: {cert.institutionName}</p>
+                            <p className="text-sm text-muted-foreground">Issued: {cert.issueDate}</p>
+                            {cert.status === "revoked" && (
+                              <p className="text-sm font-semibold text-red-500">REVOKED</p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => viewCertificateDetails(cert)}>
+                              View Details
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => revokeCertificate(cert.id)}
+                              disabled={cert.status === "revoked"}
+                            >
+                              {cert.status === "revoked" ? "Revoked" : "Revoke"}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </MotionDiv>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">

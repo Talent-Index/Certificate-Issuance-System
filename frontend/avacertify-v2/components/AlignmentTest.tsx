@@ -3,6 +3,12 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+/**
+ * A component for testing different text alignment styles and layout behaviors
+ * Demonstrates left, center, and right alignment in card layouts
+ * Includes examples of default alignment, navigation items, and form elements
+ * @returns React component showing various alignment test cases
+ */
 export function AlignmentTest() {
   return (
     <div className="container py-8">

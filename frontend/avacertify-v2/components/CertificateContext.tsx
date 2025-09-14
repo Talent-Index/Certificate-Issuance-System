@@ -4,14 +4,23 @@ import { Certificate, certificateService } from "@/utils/blockchain";
 interface CertificateContextType {
   certificates: Certificate[];
   fetchCertificates: () => Promise<void>;
-  addCertificate: (cert: Certificate) => void;
+  addCertificate: (_cert: Certificate) => void;
 }
 
 const CertificateContext = createContext<CertificateContextType | undefined>(undefined);
 
+/**
+ * Provider component for managing certificate state across the application
+ * Handles certificate storage, retrieval, and synchronization with blockchain
+ * @param children React child components that will have access to certificate context
+ */
 export const CertificateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
 
+  /**
+   * Fetches certificates from local storage and updates their status from blockchain
+   * Synchronizes local certificate data with blockchain state
+   */
   const fetchCertificates = async () => {
     try {
       const storedCertificates = JSON.parse(localStorage.getItem("certificates") || "[]") as Certificate[];
@@ -29,6 +38,10 @@ export const CertificateProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  /**
+   * Adds a new certificate to the local state and storage
+   * @param cert Certificate object to add
+   */
   const addCertificate = (cert: Certificate) => {
     setCertificates((prev) => [...prev, cert]);
     localStorage.setItem("certificates", JSON.stringify([...certificates, cert]));
@@ -45,6 +58,11 @@ export const CertificateProvider: React.FC<{ children: React.ReactNode }> = ({ c
   );
 };
 
+/**
+ * Hook for accessing certificate context
+ * @returns Certificate context containing certificates array and management functions
+ * @throws Error if used outside of CertificateProvider
+ */
 export const useCertificates = () => {
   const context = useContext(CertificateContext);
   if (!context) {
