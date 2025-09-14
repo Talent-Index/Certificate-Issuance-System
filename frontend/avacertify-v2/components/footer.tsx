@@ -1,8 +1,7 @@
 "use client"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Twitter, Github, Linkedin, Mail } from "lucide-react"
-import { DiscIcon as Discord } from "lucide-react"
+import { Github, Linkedin, Mail } from "lucide-react"
 
 const socialLinks = [
   /*{ name: "Twitter", icon: Twitter, href: "https://twitter.com/avacertify" }, */
