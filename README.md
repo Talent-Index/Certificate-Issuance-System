@@ -4,7 +4,7 @@ A decentralized certificate issuance and verification system built on Avalanche 
 
 ## 🎥 Project Demo and Pitch
 
-https://github.com/I-Macharia/Certificate-Issuance-System/assets/raw/main/AvaCertify_Pitch.mp4
+https://github.com/I-Macharia/Certificate-Issuance-System/AvaCertify_Pitch.mp4
 
 ## 🚀 Deployed Contracts (Avalanche Fuji Testnet)
 
