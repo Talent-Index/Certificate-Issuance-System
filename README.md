@@ -1,5 +1,7 @@
 # AvaCertify - Certificate Issuance System
+# AvaCertify - Certificate Issuance System
 
+A decentralized certificate issuance and verification system built on Avalanche blockchain using Foundry framework. This system provides secure, tamper-proof, and verifiable digital credentials through smart contracts and a modern web interface.
 A decentralized certificate issuance and verification system built on Avalanche blockchain using Foundry framework. This system provides secure, tamper-proof, and verifiable digital credentials through smart contracts and a modern web interface.
 
 ## 🎥 Project Demo and Pitch
@@ -20,27 +22,6 @@ https://github.com/I-Macharia/Certificate-Issuance-System/AvaCertify_Pitch.mp4
   - Organization registration and branding features
 
 ## 🏗️ Architecture
-=======
-- **Functionality:** Anyone can verify a certificate’s validity.
-- **How It Works:**
-  - The blockchain securely stores certificate data.
-  - A function retrieves certificate details using the Certificate ID.
-
-### 3️⃣ Revoke Certificates
-
-- **Functionality:** The issuer can revoke a certificate if necessary.
-- **How It Works:**
-  - The smart contract updates the certificate status to "revoked."
-  - Revoked certificates can no longer be verified as valid.
-
-## 🛠️ Tech Stack
-
-- **Languages:** Solidity, JavaScript
-- **Frameworks:** Avalanche, React, Node.js, Firebase
-- **Tools:** Truffle, Hardhat
-
-
-## 🔧 Project Structure
 
 ### Frontend (Next.js)
 - **Framework**: Next.js 14 with TypeScript
@@ -146,6 +127,114 @@ REACT_APP_FIREBASE_PROJECT_ID=your_firebase_project_id
 REACT_APP_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
 REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
 REACT_APP_FIREBASE_APP_ID=your_firebase_app_id
+4. **Environment Configuration:**
+   ```bash
+   # Root directory - Copy and configure
+   cp .env.example .env
+   
+   # Add your private key and RPC URLs
+   PRIVATE_KEY=your_private_key_here
+   AVALANCHE_FUJI_RPC=https://api.avax-test.network/ext/bc/C/rpc
+   ```
+
+## 🧪 Testing & Development
+
+### Smart Contract Testing
+```bash
+# Run all tests
+forge test
+
+# Run tests with verbose output
+forge test -vvv
+
+# Run specific test file
+forge test --match-path test/CertificateIssuanceSystem.t.sol
+
+# Generate gas report
+forge test --gas-report
+```
+
+### Frontend Development
+```bash
+cd frontend/avacertify-v2
+npm run dev
+```
+
+### Local Blockchain Development
+```bash
+# Start local Anvil chain
+anvil
+
+# Deploy to local chain
+forge script script/Deploy.s.sol --rpc-url http://localhost:8545 --private-key <your-key> --broadcast
+```
+
+## 📋 Usage Guide
+
+### For Certificate Issuers
+1. **Access Admin Panel**: Navigate to `/admin` (requires admin wallet)
+2. **Issue Certificate**: Fill recipient details and certificate metadata
+3. **Manage Roles**: Grant issuer permissions to authorized users
+4. **Verify Certificates**: Use built-in verification tools
+
+### For Certificate Recipients
+1. **View Certificates**: Access personal dashboard to view owned certificates
+2. **Share Verification**: Generate shareable verification links
+3. **Transfer Certificates**: Move certificates to different wallet addresses
+4. **Download Metadata**: Access IPFS-stored certificate documents
+
+### Smart Contract Interaction
+```solidity
+// Issue a new certificate
+function issueCertificate(
+    string calldata recipientName,
+    address recipientAddress
+) external onlyRole(ISSUER_ROLE);
+
+// Verify certificate validity
+function verifyCertificate(uint256 tokenId) external view returns (bool);
+
+// Revoke certificate (admin only)
+function revokeCertificate(uint256 tokenId) external onlyRole(DEFAULT_ADMIN_ROLE);
+```
+
+## 🔧 Configuration
+
+### Contract Configuration
+Key settings in `src/CertificateIssuanceSystem.sol`:
+- Role management for admin and issuer permissions
+- Certificate metadata structure
+- Transfer and revocation policies
+
+### Frontend Configuration
+Located in `frontend/avacertify-v2/utils/contractConfig.ts`:
+```typescript
+export const CONTRACT_ADDRESSES = {
+  CERTIFICATE_SYSTEM: "0x9213c9e46e950dcb316ba35126f39299bb0ecaaa",
+  NFT_CERTIFICATE: "0xdE5b750ebBc0A92a53614f18081E72609F09BC69"
+};
+```
+
+## 🚀 Deployment
+
+### Avalanche Fuji Testnet Deployment
+The contracts are deployed and verified on Avalanche Fuji testnet:
+
+```bash
+# Deploy script used
+forge script script/Deploy.s.sol --rpc-url $AVALANCHE_FUJI_RPC --private-key $PRIVATE_KEY --broadcast --verify
+
+# Verification command
+forge verify-contract --chain-id 43113 --watch <CONTRACT_ADDRESS> <CONTRACT_NAME>
+```
+
+### Custom Deployment
+```bash
+# Deploy to different network
+forge script script/Deploy.s.sol --rpc-url <YOUR_RPC_URL> --private-key <YOUR_PRIVATE_KEY> --broadcast
+
+# Update frontend configuration
+# Edit frontend/avacertify-v2/utils/contractConfig.ts with new addresses
 ```
 
 ## 📋 Usage Guide
