@@ -32,7 +32,7 @@ const sections: NavSection[] = [
     items: [
       { title: "Architecture", href: "/documentation/architecture" },
       { title: "Smart Contracts", href: "/documentation/smart-contracts" },
-      { title: "Frontend & UI", href: "/d</div>ocumentation/frontend" },
+      { title: "Frontend & UI", href: "/documentation/frontend" },
       { title: "Backend & API", href: "/documentation/backend" },
     ],
   },
