@@ -1,15 +1,14 @@
 "use client"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Twitter, Github, Linkedin, Mail } from "lucide-react"
-import { DiscIcon as Discord } from "lucide-react"
+import { Github, Linkedin, Mail } from "lucide-react"
 
 const socialLinks = [
-  { name: "Twitter", icon: Twitter, href: "https://twitter.com/avacertify" },
-  { name: "GitHub", icon: Github, href: "https://github.com/avacertify" },
-  { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com/company/avacertify" },
-  { name: "Discord", icon: Discord, href: "https://discord.gg/avacertify" },
-  { name: "Email", icon: Mail, href: "mailto:contact@avacertify.com" },
+  /*{ name: "Twitter", icon: Twitter, href: "https://twitter.com/avacertify" }, */
+  { name: "GitHub", icon: Github, href: "https://github.com/Avalanche-Team1-Africa/Certificate-Issuance-System" },
+  { name: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/company/avacertify/" },
+  /* { name: "Discord", icon: Discord, href: "https://discord.gg/avacertify" }, */
+  { name: "Email", icon: Mail, href: "mailto:avacertify@gmail.com.com" },
 ]
 
 export function Footer() {
@@ -21,17 +20,17 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/features" className="text-sm text-foreground/60 hover:text-primary">
+                <Link href="/#features" className="text-sm text-foreground/60 hover:text-primary">
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-sm text-foreground/60 hover:text-primary">
+                <Link href="/#pricing" className="text-sm text-foreground/60 hover:text-primary">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="/security" className="text-sm text-foreground/60 hover:text-primary">
+                <Link href="/#security" className="text-sm text-foreground/60 hover:text-primary">
                   Security
                 </Link>
               </li>
@@ -104,4 +103,3 @@ export function Footer() {
     </footer>
   )
 }
-

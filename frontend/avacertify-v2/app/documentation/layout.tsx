@@ -7,7 +7,6 @@ import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { Layout } from "@/components/layout"
 import type React from "react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 
 interface NavItem {
   title: string
@@ -120,4 +119,3 @@ export default function DocLayout({ children }: { children: React.ReactNode }) {
     </Layout>
   )
 }
-

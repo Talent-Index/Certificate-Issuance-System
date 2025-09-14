@@ -134,4 +134,3 @@ contract AvaCertify is ERC721URIStorage, Ownable {
     </div>
   )
 }
-

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, LayoutDashboard, CheckCircle, Info, User, Bell } from "lucide-react"
+import { Menu, Home, LayoutDashboard, CheckCircle, Info, User, Bell, Settings } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { WalletConnect } from "./wallet-connect"
 import { motion } from "framer-motion"
@@ -14,6 +14,7 @@ import { useToast } from "../hooks/use-toast"
 const navItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Admin", href: "/admin", icon: Settings },
   { name: "Verify", href: "/verify", icon: CheckCircle },
   { name: "About", href: "/about", icon: Info },
   { name: "Profile", href: "/profile", icon: User },
@@ -47,7 +48,7 @@ export function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             />
-            <span className="font-bold text-xl gradient-text">AvaCertify</span>
+            <span className="font-bold text-xl bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">AvaCertify</span>
           </Link>
           <nav className="hidden md:flex space-x-1">
             {navItems.map((item) => (
@@ -125,5 +126,3 @@ export function Navigation() {
     </motion.header>
   )
 }
-
-

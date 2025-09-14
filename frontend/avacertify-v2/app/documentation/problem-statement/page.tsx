@@ -30,6 +30,7 @@ export default function ProblemStatement() {
               employers to verify credentials efficiently.
             </li>
           </ul>
+          <p>Students don&apos;t always receive verifiable certificates...</p>
         </CardContent>
       </Card>
       <Card>
@@ -52,7 +53,7 @@ export default function ProblemStatement() {
             </li>
           </ul>
           <p className="mt-4">
-            AvaCertify leverages Avalanche's high-speed, low-cost, and secure blockchain infrastructure to deliver these
+            AvaCertify leverages Avalanche&apos;s high-speed, low-cost, and secure blockchain infrastructure to deliver these
             advantages at scale.
           </p>
         </CardContent>
@@ -60,4 +61,3 @@ export default function ProblemStatement() {
     </div>
   )
 }
-

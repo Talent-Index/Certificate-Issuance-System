@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["next-env.d.ts"],
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended"
@@ -7,7 +8,8 @@
   "plugins": ["@typescript-eslint"],
   "rules": {
     "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-unused-vars": "warn",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "react/no-unescaped-entities": "warn"
   }
 }

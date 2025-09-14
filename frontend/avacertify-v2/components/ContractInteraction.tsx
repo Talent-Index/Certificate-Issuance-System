@@ -1,89 +1,74 @@
-// src/components/ContractStatus.tsx
+// src/components/ContractInteraction.tsx
+"use client"
 import { useState, useEffect } from 'react';
 import { certificateService } from '@/utils/blockchain';
 
-// Import from a toast library like react-hot-toast or create a custom toast component
-import { toast as hotToast } from '@/hooks/use-toast';
-
-function toast({ title, description, variant = 'default' }: {
-    title: string;
-    description: string;
-    variant?: 'default' | 'destructive'
-}) {
-    const message = `${title}: ${description}`;
-    if (variant === 'destructive') {
-        hotToast({
-            title: message,
-            variant: "destructive",
-        });
-    } else {
-        hotToast({
-            title: message,
-            variant: "default",
-        });
-    }
-}
-
-
-export const ContractStatus: React.FC = () => {
+/**
+ * Component for interacting with the smart contract
+ * Provides wallet connection and certificate management functionality
+ * @returns React component for contract interaction
+ */
+const ContractInteraction: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
     const [address, setAddress] = useState<string | null>(null);
-    const [isIssuing, setIsIssuing] = useState(false);
 
     useEffect(() => {
+        const checkConnection = async () => {
+            try {
+                const connectedAddress = await certificateService.getConnectedAddress();
+                if (connectedAddress) {
+                    setAddress(connectedAddress);
+                    setStatus('connected');
+                } else {
+                    setStatus('disconnected');
+                }
+            } catch (err) {
+                console.error(err);
+                setStatus('disconnected');
+            }
+        };
         checkConnection();
     }, []);
 
-    const checkConnection = async () => {
-        try {
-            const address = await certificateService.getConnectedAddress();
-            setAddress(address);
-            setStatus('connected');
-        } catch (error: any) {
-            setStatus('disconnected');
-        }
-    };
-
+    /**
+     * Handles wallet connection
+     * Attempts to connect to the user's wallet and updates the connection status
+     */
     const handleConnect = async () => {
         setStatus('connecting');
         try {
-            const address = await certificateService.connectWallet();
-            setAddress(address);
+            const connectedAddress = await certificateService.connectWallet();
+            setAddress(connectedAddress);
             setStatus('connected');
-        } catch (error: any) {
+        } catch (err) {
+            console.error(err);
             setStatus('disconnected');
         }
     };
 
-    const handleIssueCertificate = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setIsIssuing(true);
-
+    /**
+     * Handles certificate issuance
+     * Issues a test certificate with hardcoded values for testing purposes
+     */
+    const handleIssueCertificate = async () => {
         try {
-            const form = e.currentTarget;
-            const recipientName = (form.elements.namedItem('recipientName') as HTMLInputElement).value;
+            const tx = await certificateService.issueCertificate("John Doe", "0x123...");
+            console.log('Certificate issued:', tx);
+        } catch (err) {
+            console.error('Failed to issue certificate:', err);
+        }
+    };
 
-            if (!recipientName) {
-                throw new Error('Recipient name is required');
-            }
-
-            const id = await certificateService?.issueCertificate(recipientName);
-
-            toast({
-                title: "Success",
-                description: `Certificate issued with ID: ${id}`,
-            });
-
-            form.reset();
-        } catch (error) {
-            console.error(error);
-            toast({
-                title: "Error",
-                description: error instanceof Error ? error.message : "Failed to issue certificate",
-                variant: "destructive"
-            });
-        } finally {
-            setIsIssuing(false);
+    /**
+     * Retrieves certificate information
+     * Fetches a test certificate with ID "1" for testing purposes
+     */
+    const handleGetCertificate = async () => {
+        try {
+            const cert = await certificateService.getCertificate("1");
+            console.log('Certificate:', cert);
+        } catch (err) {
+            console.error('Failed to get certificate:', err);
         }
     };
 
@@ -124,27 +109,18 @@ export const ContractStatus: React.FC = () => {
                     >
                         Reconnect
                     </button>
-                    <form onSubmit={handleIssueCertificate} className="mt-4">
-                        <input
-                            type="text"
-                            name="recipientName"
-                            placeholder="Recipient Name"
-                            className="px-4 py-2 border rounded"
-                            required
-                        />
-                        <button
-                            type="submit"
-                            disabled={isIssuing}
-                            className="ml-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 
-                            disabled:bg-gray-400 transition-colors"
-                        >
-                            {isIssuing ? 'Issuing...' : 'Issue Certificate'}
-                        </button>
-                    </form>
                 </div>
             )}
+            <div className="mt-4 flex space-x-2">
+                <button onClick={handleIssueCertificate} className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
+                    Issue Test Certificate
+                </button>
+                <button onClick={handleGetCertificate} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">
+                    Get Test Certificate
+                </button>
+            </div>
         </div>
     );
 };
 
-export default ContractStatus;
+export default ContractInteraction;
