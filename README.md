@@ -202,19 +202,126 @@ Certificate-Issuance-System/
 
 ## 🤝 Contributing
 
+We love your input! We want to make contributing to AvaCertify as easy and transparent as possible, whether it's:
+
+- Reporting a bug
+- Discussing the current state of the code
+- Submitting a fix
+- Proposing new features
+- Becoming a maintainer
+
+### Development Process
+
 1. **Fork the Repository**
-2. **Create Feature Branch**: `git checkout -b feature/amazing-feature`
-3. **Run Tests**: Ensure all tests pass
-4. **Commit Changes**: `git commit -m 'Add amazing feature'`
-5. **Push Branch**: `git push origin feature/amazing-feature`
-6. **Open Pull Request**
+2. **Clone your Fork**
+   ```bash
+   git clone https://github.com/your-username/Certificate-Issuance-System.git
+   cd Certificate-Issuance-System
+   ```
+
+3. **Create a Branch**
+   ```bash
+   # Name your branch based on the type of contribution
+   git checkout -b feat/amazing-feature     # for features
+   git checkout -b fix/bug-description      # for bug fixes
+   git checkout -b docs/documentation-name  # for documentation
+   git checkout -b test/test-description   # for tests
+   ```
+
+4. **Make your Changes**
+   - Write meaningful, clean, and testable code
+   - Follow the coding standards and guidelines
+   - Keep your changes focused and atomic
+
+5. **Commit your Changes**
+   ```bash
+   # Use conventional commit messages
+   git commit -m "feat: add amazing feature"
+   git commit -m "fix: resolve issue with certificate validation"
+   git commit -m "docs: update deployment instructions"
+   git commit -m "test: add tests for certificate issuance"
+   ```
+
+   Commit Message Format:
+   ```
+   <type>(<scope>): <subject>
+
+   <body>
+
+   <footer>
+   ```
+   
+   Types:
+   - `feat`: New feature
+   - `fix`: Bug fix
+   - `docs`: Documentation changes
+   - `style`: Code style changes (formatting, missing semicolons, etc)
+   - `refactor`: Code refactoring
+   - `test`: Adding missing tests
+   - `chore`: Maintenance tasks
+
+6. **Run Tests**
+   ```bash
+   # Smart Contracts
+   forge test
+   forge coverage
+
+   # Frontend
+   cd frontend/avacertify-v2
+   npm run test
+   ```
+
+7. **Push to your Fork**
+   ```bash
+   git push origin your-branch-name
+   ```
+
+8. **Open a Pull Request**
+   - Provide a clear title and description
+   - Link any relevant issues
+   - Include screenshots/videos for UI changes
+   - Update documentation if needed
 
 ### Development Guidelines
-- Follow Solidity style guide
-- Write comprehensive tests for smart contracts
-- Use TypeScript for frontend development
-- Follow conventional commit messages
-- Update documentation for new features
+
+#### Smart Contracts
+- Follow [Solidity Style Guide](https://docs.soliditylang.org/en/latest/style-guide.html)
+- Add NatSpec comments for all public functions
+- Maintain test coverage above 90%
+- Use OpenZeppelin contracts when possible
+- Add events for important state changes
+- Document all state variables
+
+#### Frontend
+- Use TypeScript for all new code
+- Follow React hooks best practices
+- Maintain consistent component structure
+- Use shadcn/ui component patterns
+- Add proper error handling
+- Keep components small and focused
+
+#### Testing
+- Write unit tests for all new features
+- Include integration tests for complex flows
+- Test edge cases and error conditions
+- Document test scenarios
+- Update test documentation
+
+#### Documentation
+- Update README for new features
+- Add JSDoc comments for TypeScript code
+- Document environment variables
+- Include setup steps for new features
+- Add inline comments for complex logic
+
+#### Pull Request Checklist
+- [ ] Tests added/updated and passing
+- [ ] Documentation updated
+- [ ] Code follows style guidelines
+- [ ] Self-review completed
+- [ ] No unnecessary dependencies added
+- [ ] No sensitive information included
+- [ ] Commit messages follow convention
 
 ## 🔐 Security
 
