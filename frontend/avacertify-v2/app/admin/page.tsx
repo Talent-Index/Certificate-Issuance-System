@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,7 @@ export default function AdminPage() {
     documentUrl: "",
   });
   const [isIssuing, setIsIssuing] = useState(false);
+  const [attachDocument, setAttachDocument] = useState(true);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
@@ -87,6 +88,8 @@ export default function AdminPage() {
       const documentHash = await ipfsService.uploadFile(file);
       const documentUrl = ipfsService.getGatewayUrl(documentHash);
       setUploadState((prev) => ({ ...prev, documentHash, documentUrl }));
+      // auto-select the uploaded document for issuance
+      setAttachDocument(true);
       toast({
         title: "File Uploaded",
         description: "Document successfully uploaded to IPFS",
@@ -106,129 +109,143 @@ export default function AdminPage() {
     event.preventDefault();
     setIsIssuing(true);
 
+    // Ensure wallet is connected
     try {
-        const address = await certificateService.getConnectedAddress();
-        if (!address) {
+      // Only connect wallet if not already connected to avoid unnecessary wallet UI prompts
+      if (!isConnected) {
+        await certificateService.connectWallet();
+      }
+    } catch (err: unknown) {
+      console.error("Failed to connect wallet:", err);
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet before issuing a certificate.",
+        variant: "destructive",
+      });
+      setIsIssuing(false);
+      return;
+    }
+
+    const contract = await certificateService.getContract();
+
+    if (!contract || typeof contract.issueCertificate !== 'function') {
+      toast({
+        title: "Contract Error",
+        description: "Smart contract not initialized or missing issueCertificate method.",
+        variant: "destructive",
+      });
+      setIsIssuing(false);
+      return;
+    }
+
+    try {
+      const address = await certificateService.getConnectedAddress();
+      if (!address) {
         throw new Error("Wallet not connected");
-        }
+      }
 
-        const form = event.currentTarget as HTMLFormElement;
-        const formData = new FormData(form);
-        const recipientAddress = formData.get("recipientAddress") as string;
-        const recipientName = formData.get("recipientName") as string;
-        const certificateType = formData.get("certificateType") as string;
+      // Guarded Form element retrieval to avoid "FormData constructor: Argument 1 is not an object"
+      const formEl = (event.currentTarget as HTMLFormElement) ?? ((event.target as HTMLElement)?.closest?.('form') as HTMLFormElement | null);
+      if (!formEl) {
+        toast({ title: "Form Error", description: "Unable to read form data.", variant: "destructive" });
+        setIsIssuing(false);
+        return;
+      }
+      const formData = new FormData(formEl);
+      const recipientAddress = formData.get("recipientAddress") as string;
+      const recipientName = formData.get("recipientName") as string;
+      const certificateType = formData.get("certificateType") as string;
 
-        if (!recipientName || !recipientAddress || !certificateType) {
+      if (!recipientName || !recipientAddress || !certificateType) {
         throw new Error("Missing required fields");
-        }
+      }
 
-        const { documentHash, metadataHash } = uploadState;
-        let metadataUri = "";
-        if (documentHash) {
+      const {documentHash, metadataHash} = uploadState;
+      let metadataUri = "";
+      if (documentHash && attachDocument) {
         const metadata = {
-            name: `Certificate for ${recipientName}`,
-            description: `${certificateType} certificate issued by AvaCertify`,
-            image: ipfsService.getGatewayUrl(documentHash),
-            attributes: [
+          name: `Certificate for ${recipientName}`,
+          description: `${certificateType} certificate issued by AvaCertify`,
+          image: ipfsService.getGatewayUrl(documentHash),
+          attributes: [
             { trait_type: "Recipient", value: recipientName },
             { trait_type: "Type", value: certificateType },
             { trait_type: "Issue Date", value: new Date().toISOString() },
             { trait_type: "Issuer", value: "AvaCertify" },
-            ],
+          ],
         };
         const newMetadataHash = await ipfsService.uploadJSON(metadata);
         metadataUri = ipfsService.getGatewayUrl(newMetadataHash);
         setUploadState((prev) => ({ ...prev, metadataHash: newMetadataHash }));
-        }
+      }
 
-        toast({
+      toast({
         title: "Transaction Pending",
         description: "Please confirm the transaction in your wallet",
-        });
+      });
 
-        const certificateId = await certificateService.issueCertificate(recipientName, recipientAddress);
-        if (!certificateId) {
+      // call the service method (service already handles contract interaction)
+      const certificateId = await certificateService.issueCertificate(recipientName, recipientAddress);
+      if (!certificateId) {
         throw new Error("Failed to retrieve certificate ID");
-        }
+      }
 
-        const contract = await certificateService.getContract();
-        // ethers v6: pass all method arguments, then overrides as the last argument
-        const gasEstimate = await contract.estimateGas.issueCertificate(recipientName, recipientAddress);
-        const txResponse = await (contract as any).issueCertificate(
-          recipientName,
-          recipientAddress,
-          { gasLimit: Math.ceil(Number(gasEstimate) * 1.2) }
-        );
-        const receipt = await txResponse.wait();
-
-        if (metadataHash && window.confirm("Would you like to mint an NFT certificate?")) {
+      if (metadataHash && window.confirm("Would you like to mint an NFT certificate?")) {
         const tokenId = await certificateService.mintNFTCertificate(recipientAddress, metadataUri);
         console.log("NFT minted with token ID:", tokenId);
-        }
+      }
 
-        const newCertificate: Certificate = {
-            id: certificateId,
-            transactionHash: receipt.transactionHash,
-            recipientName,
-            recipientAddress,
-            certificateType,
-            issueDate: new Date().toISOString(),
-            institutionName: "AvaCertify",
-            status: "active",
-            additionalDetails: metadataUri,
-            certificateId: "",
-            expirationDate: "",
-            isRevoked: false
-        };
+      const newCertificate: Certificate = {
+        id: certificateId,
+        transactionHash: "",
+        recipientName,
+        recipientAddress,
+        certificateType,
+        issueDate: new Date().toISOString(),
+        institutionName: "AvaCertify",
+        status: "active",
+        additionalDetails: metadataUri,
+        certificateId: "",
+        expirationDate: "",
+        isRevoked: false
+      };
 
-        localStorage.setItem("certificates", JSON.stringify([
+      localStorage.setItem("certificates", JSON.stringify([
         ...JSON.parse(localStorage.getItem("certificates") || "[]"),
         newCertificate,
-        ]));
+      ]));
 
-        toast({
+      toast({
         title: "Certificate Issued",
-        description: `Certificate ${certificateId} issued successfully. Transaction hash: ${receipt.transactionHash}`,
-        });
+        description: `Certificate ${certificateId} issued successfully.`,
+      });
     } catch (error: unknown) {
-        let message = "Failed to issue certificate";
-        if (error instanceof Error) {
-        if (error.message.includes("user rejected")) {
-            message = "User rejected the transaction";
-        } else if (error.message.includes("insufficient funds")) {
-            message = "Insufficient funds in your wallet";
-        } else if (error.message.includes("network")) {
-            message = "Please ensure you're connected to the Avalanche Fuji Testnet";
-        } else if (error.message.includes("Contract or signer not initialized")) {
-            message = "Wallet not connected. Please reconnect and try again.";
-        } else {
-            message = error.message;
-        }
-        }
-        toast({
-        title: "Error",
-        description: message,
+      console.error("Issue certificate failed:", error);
+      toast({
+        title: "Issue Failed",
+        description: error instanceof Error ? error.message : String(error),
         variant: "destructive",
-        });
+      });
     } finally {
-        setUploadState({ isUploading: false, documentHash: "", metadataHash: "", documentUrl: "" });
-        setIsIssuing(false);
+      setUploadState({ isUploading: false, documentHash: "", metadataHash: "", documentUrl: "" });
+      setIsIssuing(false);
     }
-    };
+  };
   
   return (
     <Layout>
-      <div className="container mx-auto py-10 max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Issue new certificates using the deployed smart contracts</p>
-          {walletAddress && (
-            <p className="text-sm text-blue-600 mt-2">
-              Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-            </p>
-          )}
-        </div>
-        <Card className="mx-auto">
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-4xl py-10">
+          <div className="text-center mb-8">
+           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+           <p className="text-muted-foreground">Issue new certificates using the deployed smart contracts</p>
+           {walletAddress && (
+             <p className="text-sm text-blue-600 mt-2">
+               Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+             </p>
+           )}
+         </div>
+         <Card className="mx-auto">
           <CardHeader className="text-center">
             <CardTitle>Issue New Certificate</CardTitle>
             <p className="text-sm text-muted-foreground">
@@ -244,6 +261,7 @@ export default function AdminPage() {
                 <Label htmlFor="document">Certificate Document</Label>
                 <Input
                   id="document"
+                  name="document"
                   type="file"
                   accept="application/pdf,image/*"
                   onChange={handleFileUpload}
@@ -263,6 +281,21 @@ export default function AdminPage() {
                         View on IPFS Gateway
                       </a>
                     </div>
+
+                    <label className="flex items-center space-x-2 mt-2">
+                      <input
+                        type="checkbox"
+                        checked={attachDocument}
+                        onChange={(e) => setAttachDocument(e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">Attach uploaded document to this certificate</span>
+                    </label>
+
+                    {/* include documentHash in form submission only when selected */}
+                    {attachDocument && (
+                      <input type="hidden" name="documentHash" value={uploadState.documentHash} />
+                    )}
                   </div>
                 )}
               </div>
@@ -294,6 +327,7 @@ export default function AdminPage() {
             </form>
           </CardContent>
         </Card>
+        </div>
       </div>
     </Layout>
   );

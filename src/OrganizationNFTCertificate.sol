@@ -5,6 +5,11 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+/**
+ * @title OrganizationNFTCertificate
+ * @dev A smart contract for organizations to issue NFT certificates with their own branding
+ * Combines ERC721 standard with AccessControl for permissioned minting
+ */
 contract OrganizationNFTCertificate is ERC721, ERC721URIStorage, AccessControl {
     uint256 private _nextTokenId = 1;
 
@@ -25,6 +30,10 @@ contract OrganizationNFTCertificate is ERC721, ERC721URIStorage, AccessControl {
     event OrganizationRegistered(address organization, string logoUrl, string brandColor);
     event CertificateMinted(address organization, address recipient, uint256 tokenId, string tokenURI);
 
+    /**
+     * @dev Constructor initializes the NFT collection with name and symbol
+     * Grants DEFAULT_ADMIN_ROLE to the contract deployer
+     */
     constructor() ERC721("OrganizationNFTCertificate", "CERT") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -101,6 +110,11 @@ contract OrganizationNFTCertificate is ERC721, ERC721URIStorage, AccessControl {
     }
 
     // Required overrides
+    /**
+     * @dev Determines if the contract implements the specified interface
+     * @param interfaceId The interface identifier, as specified in ERC-165
+     * @return bool True if the contract implements interfaceId, false otherwise
+     */
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -110,6 +124,11 @@ contract OrganizationNFTCertificate is ERC721, ERC721URIStorage, AccessControl {
         return super.supportsInterface(interfaceId);
     }
 
+    /**
+     * @dev Returns the URI for a given token ID
+     * @param tokenId The ID of the token to query
+     * @return string The URI of the token metadata
+     */
     function tokenURI(uint256 tokenId)
         public
         view

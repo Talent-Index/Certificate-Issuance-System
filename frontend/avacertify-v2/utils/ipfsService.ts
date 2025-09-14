@@ -1,5 +1,9 @@
 // Browser-compatible IPFS service using Pinata
 
+/**
+ * Service for interacting with IPFS through Pinata API
+ * Handles file and metadata uploads to IPFS in a browser environment
+ */
 export class IPFSService {
     private pinataApiKey: string;
     private pinataApiSecret: string;
@@ -14,12 +18,25 @@ export class IPFSService {
         }
     }
 
+    /**
+     * Validates that required Pinata API keys are configured
+     * @throws Error if API keys are not configured
+     */
     private checkApiKeys(): void {
         if (!this.pinataApiKey || !this.pinataApiSecret) {
             throw new Error('Pinata API keys not configured. Please set NEXT_PUBLIC_PINATA_API_KEY and NEXT_PUBLIC_PINATA_API_SECRET in your .env.local file.');
         }
     }
 
+    /**
+     * Generates metadata for an NFT
+     * @param name Name of the NFT
+     * @param description Description of the NFT
+     * @param imageCID IPFS CID of the NFT image
+     * @param color Brand color attribute
+     * @param issuer Issuer name attribute
+     * @returns Metadata object formatted for NFT standards
+     */
     generateMetadata(name: string, description: string, imageCID: string, color: string, issuer: string) {
         return {
             name: name,
@@ -32,6 +49,12 @@ export class IPFSService {
         };
     }
 
+    /**
+     * Uploads a file to IPFS using Pinata
+     * @param file File object to upload
+     * @returns Promise resolving to IPFS hash (CID) of the uploaded file
+     * @throws Error if upload fails or API is not configured
+     */
     async uploadFile(file: File): Promise<string> {
         this.checkApiKeys();
         
@@ -70,7 +93,13 @@ export class IPFSService {
         }
     }
 
-    async uploadJSON(jsonData: any): Promise<string> {
+    /**
+     * Uploads JSON data to IPFS using Pinata
+     * @param jsonData JSON data to upload
+     * @returns Promise resolving to IPFS hash (CID) of the uploaded JSON
+     * @throws Error if upload fails or API is not configured
+     */
+    async uploadJSON(jsonData: unknown): Promise<string> {
         this.checkApiKeys();
         
         try {
@@ -96,6 +125,11 @@ export class IPFSService {
         }
     }
 
+    /**
+     * Gets the Pinata gateway URL for an IPFS hash
+     * @param cid IPFS Content Identifier (CID)
+     * @returns Public gateway URL for accessing the content
+     */
     getGatewayUrl(cid: string): string {
         return `https://gateway.pinata.cloud/ipfs/${cid}`;
     }

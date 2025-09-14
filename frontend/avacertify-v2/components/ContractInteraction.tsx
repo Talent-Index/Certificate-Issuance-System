@@ -1,36 +1,74 @@
-// src/components/ContractStatus.tsx
+// src/components/ContractInteraction.tsx
+"use client"
 import { useState, useEffect } from 'react';
 import { certificateService } from '@/utils/blockchain';
 
-export const ContractStatus: React.FC = () => {
+/**
+ * Component for interacting with the smart contract
+ * Provides wallet connection and certificate management functionality
+ * @returns React component for contract interaction
+ */
+const ContractInteraction: React.FC = () => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-    // const [error, setError] = useState<string | null>(null);
     const [address, setAddress] = useState<string | null>(null);
 
     useEffect(() => {
+        const checkConnection = async () => {
+            try {
+                const connectedAddress = await certificateService.getConnectedAddress();
+                if (connectedAddress) {
+                    setAddress(connectedAddress);
+                    setStatus('connected');
+                } else {
+                    setStatus('disconnected');
+                }
+            } catch (err) {
+                console.error(err);
+                setStatus('disconnected');
+            }
+        };
         checkConnection();
     }, []);
 
-    const checkConnection = async () => {
-        try {
-            const address = await certificateService.getConnectedAddress();
-            setAddress(address);
-            setStatus('connected');
-            // setError(null);
-        } catch (error: any) {
-            setStatus('disconnected');
-            // setError('Wallet not connected');
-        }
-    };
-
+    /**
+     * Handles wallet connection
+     * Attempts to connect to the user's wallet and updates the connection status
+     */
     const handleConnect = async () => {
         setStatus('connecting');
         try {
-            const address = await certificateService.connectWallet();
-            setAddress(address);
+            const connectedAddress = await certificateService.connectWallet();
+            setAddress(connectedAddress);
             setStatus('connected');
-        } catch (error: any) {
+        } catch (err) {
+            console.error(err);
             setStatus('disconnected');
+        }
+    };
+
+    /**
+     * Handles certificate issuance
+     * Issues a test certificate with hardcoded values for testing purposes
+     */
+    const handleIssueCertificate = async () => {
+        try {
+            const tx = await certificateService.issueCertificate("John Doe", "0x123...");
+            console.log('Certificate issued:', tx);
+        } catch (err) {
+            console.error('Failed to issue certificate:', err);
+        }
+    };
+
+    /**
+     * Retrieves certificate information
+     * Fetches a test certificate with ID "1" for testing purposes
+     */
+    const handleGetCertificate = async () => {
+        try {
+            const cert = await certificateService.getCertificate("1");
+            console.log('Certificate:', cert);
+        } catch (err) {
+            console.error('Failed to get certificate:', err);
         }
     };
 
@@ -73,8 +111,16 @@ export const ContractStatus: React.FC = () => {
                     </button>
                 </div>
             )}
+            <div className="mt-4 flex space-x-2">
+                <button onClick={handleIssueCertificate} className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
+                    Issue Test Certificate
+                </button>
+                <button onClick={handleGetCertificate} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">
+                    Get Test Certificate
+                </button>
+            </div>
         </div>
     );
 };
 
-export default ContractStatus;
+export default ContractInteraction;
