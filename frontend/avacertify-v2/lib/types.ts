@@ -38,6 +38,9 @@ export interface Certificate {
 
   institutionName: string
 
+  status: "active" | "revoked"
+
+
 }
 
 
@@ -45,7 +48,6 @@ export interface Certificate {
 export const placeholderCertificates: Certificate[] = [
 
   {
-
     id: "1",
 
     certificateId: "CERT-123ABC",
@@ -66,8 +68,8 @@ export const placeholderCertificates: Certificate[] = [
 
     isRevoked: false,
 
-    institutionName: "Example University"
-
+    institutionName: "Example University",
+    status: "active"
   }
 
 ]

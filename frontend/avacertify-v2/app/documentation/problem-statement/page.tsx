@@ -30,6 +30,7 @@ export default function ProblemStatement() {
               employers to verify credentials efficiently.
             </li>
           </ul>
+          <p>Students don&apos;t always receive verifiable certificates...</p>
         </CardContent>
       </Card>
       <Card>
