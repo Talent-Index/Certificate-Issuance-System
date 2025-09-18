@@ -26,7 +26,7 @@ This document summarizes the successful migration from Hardhat to Foundry for th
 #### Added Foundry Files
 - ✅ `foundry.toml` - Foundry configuration
 - ✅ `lib/` directory with dependencies
-  - `lib/openzeppelin-contracts/` - OpenZeppelin smart contract library
+  - `lib/openzeppelin/` - OpenZeppelin smart contract library
   - `lib/forge-std/` - Foundry standard library
 - ✅ `script/Deploy.s.sol` - Foundry deployment script
 - ✅ `out/` directory - Compiled contract artifacts

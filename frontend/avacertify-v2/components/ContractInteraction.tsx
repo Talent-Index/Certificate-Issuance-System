@@ -22,7 +22,7 @@ export const ContractStatus: React.FC = () => {
         const checkConnection = async () => {
             try {
                 const connectedAddress = await certificateService.getConnectedAddress();
-                if (connectedAddress) {
+                if (typeof connectedAddress === 'string' && connectedAddress) {
                     setAddress(connectedAddress);
                     setStatus('connected');
                 } else {
@@ -39,8 +39,12 @@ export const ContractStatus: React.FC = () => {
     const checkConnection = async () => {
         try {
             const address = await certificateService.getConnectedAddress();
-            setAddress(address);
-            setStatus('connected');
+            if (typeof address === 'string' && address) {
+                setAddress(address);
+                setStatus('connected');
+            } else {
+                setStatus('disconnected');
+            }
         } catch (error: any) {
             setStatus('disconnected');
         }

@@ -52,6 +52,9 @@ interface ContractMethods {
 type CertificateContract = ethers.Contract & ContractMethods;
 
 export class CertificateService {
+    getConnectedAddress() {
+        throw new Error('Method not implemented.');
+    }
   getProvider(): ethers.BrowserProvider {
     if (!this.provider) {
       throw new Error("Provider not initialized");
@@ -100,6 +103,7 @@ private async initialize(): Promise<void> {
                 }
             }
         }
+        
 
         this.signer = await this.provider.getSigner();
         this.contract = new ethers.Contract(
@@ -411,19 +415,20 @@ private async initialize(): Promise<void> {
   }
 
   /**
-   * Gets the currently connected wallet address
-   * @returns Promise resolving to the connected address, or null if not connected
+   * Transfers a certificate to a new recipient
+   * @param certificateId ID of the certificate to transfer
+   * @param newRecipientAddress Address of the new recipient
+   * @returns Promise resolving to true if successful, false if failed
    */
-  async getConnectedAddress(): Promise<string | null> {
-    if (!this.signer) {
-      console.warn('Wallet not connected');
-      return null;
-    }
+  async transferCertificate(certificateId: string, newRecipientAddress: string): Promise<boolean> {
+    await this.validateConnection();
     try {
-      return await this.signer.getAddress();
+      const tx = await (this.contract as unknown as { transferCertificate: (id: string, recipient: string) => Promise<ethers.ContractTransactionResponse> }).transferCertificate(certificateId, newRecipientAddress);
+      await tx.wait();
+      return true;
     } catch (error) {
-      console.error('Error getting address:', error);
-      return null;
+      console.error('Error transferring certificate:', error);
+      return false;
     }
   }
 }

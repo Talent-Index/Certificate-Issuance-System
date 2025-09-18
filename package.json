@@ -1,0 +1,23 @@
+{
+  "name": "certificate-issuance-system",
+  "version": "1.0.0",
+  "description": "A decentralized certificate issuance and verification system built on Avalanche blockchain using Foundry framework. This system provides secure, tamper-proof, and verifiable digital credentials through smart contracts and a modern web interface. A decentralized certificate issuance and verification system built on Avalanche blockchain using Foundry framework. This system provides secure, tamper-proof, and verifiable digital credentials through smart contracts and a modern web interface.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "forge-std": "github:foundry-rs/forge-std"
+  },
+  "devDependencies": {
+    "@types/chai": "^5.2.2",
+    "chai": "^6.0.1"
+  }
+}

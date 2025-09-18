@@ -1,5 +1,6 @@
-import { ethers } from 'ethers';
+import { ethers as ethersjs } from 'ethers';
 import { expect } from 'chai';
+import { beforeEach, describe, it } from 'node:test';
 
 // Define Certificate interface locally for tests
 interface Certificate {
@@ -17,9 +18,9 @@ declare global {
 }
 
 class CertificateService {
-    private provider: ethers.BrowserProvider | null = null;
-    private contract: ethers.Contract | null = null;
-    private signer: ethers.JsonRpcSigner | null = null;
+    private provider: ethersjs.BrowserProvider | null = null;
+    private contract: ethersjs.Contract | null = null;
+    private signer: ethersjs.JsonRpcSigner | null = null;
     constructor() {
         if (typeof window !== 'undefined' && window.ethereum) {
             this.provider = new ethers.BrowserProvider(window.ethereum);
@@ -142,11 +143,14 @@ class CertificateService {
 // Create test instance
 export const certificateService = new CertificateService();
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 // Mock implementations for testing
-const MockWeb3Provider = jest.fn();
-const MockEthersContract = jest.fn();
-const MockSigner = jest.fn();
+const { fn, mock } = require('jest-mock');
+const MockWeb3Provider = fn();
+const MockEthersContract = fn();
+const MockSigner = fn();
 
+const jest = require('jest-mock');
 jest.mock('ethers', () => ({
     BrowserProvider: MockWeb3Provider,
     Contract: MockEthersContract,
@@ -245,7 +249,7 @@ describe('CertificateService', () => {
 
     it('should throw error if no provider', async () => {
         // Arrange
-        service.provider = null;
+        service['provider'] = null;
 
         // Act & Assert
         await expect(service.connectWallet()).rejects.toThrowError('Please install MetaMask');
@@ -263,7 +267,7 @@ describe('CertificateService', () => {
             }),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const certificateId = await service.issueCertificate(mockRecipientName);
@@ -289,7 +293,7 @@ describe('CertificateService', () => {
             }),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const certificateId = await service.issueCertificate('John Doe');
@@ -306,7 +310,7 @@ describe('CertificateService', () => {
             verifyCertificate: jest.fn().mockResolvedValue(mockVerificationResult),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const result = await service.verifyCertificate(mockCertificateId);
@@ -323,7 +327,7 @@ describe('CertificateService', () => {
             revokeCertificate: jest.fn().mockResolvedValue({ wait: jest.fn().mockResolvedValue(undefined) }),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const result = await service.revokeCertificate(mockCertificateId);
@@ -347,7 +351,7 @@ describe('CertificateService', () => {
             getCertificate: jest.fn().mockResolvedValue(mockCertificate),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const certificate = await service.getCertificate(mockCertificateId);
@@ -362,7 +366,7 @@ describe('CertificateService', () => {
         const mockAddress = '0x123';
         const mockSigner = { getAddress: jest.fn().mockResolvedValue(mockAddress) };
         MockSigner.mockReturnValue(mockSigner as any);
-        service.signer = mockSigner as any;
+        service['signer'] = mockSigner as any;
 
         // Act
         const address = await service.getConnectedAddress();
@@ -421,7 +425,7 @@ describe('CertificateService', () => {
             issueCertificate: jest.fn().mockRejectedValue(new Error('Issuance failed')),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const result = await service.issueCertificate('John Doe');
@@ -436,7 +440,7 @@ describe('CertificateService', () => {
             verifyCertificate: jest.fn().mockRejectedValue(new Error('Verification failed')),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const result = await service.verifyCertificate('123');
@@ -451,7 +455,7 @@ describe('CertificateService', () => {
             revokeCertificate: jest.fn().mockRejectedValue(new Error('Revocation failed')),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const result = await service.revokeCertificate('123');
@@ -466,7 +470,7 @@ describe('CertificateService', () => {
             getCertificate: jest.fn().mockRejectedValue(new Error('Get certificate failed')),
         };
         MockEthersContract.mockImplementation(() => mockContract);
-        service.contract = mockContract as any;
+        service['contract'] = mockContract as any;
 
         // Act
         const result = await service.getCertificate('123');
@@ -478,8 +482,9 @@ describe('CertificateService', () => {
 
 });
 
-import { expect } from "chai";
-import { ethers } from "hardhat";
+
+
+
 
 describe("CertificateService", function() {
     let certificateService: any;
@@ -502,7 +507,7 @@ describe("CertificateService", function() {
     });
 });
 
-const { expect } = require("chai");
+
 const { ethers } = require("hardhat");
 
 describe("OrganizationNFTCertificate", function () {
