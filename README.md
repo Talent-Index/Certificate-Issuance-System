@@ -1,8 +1,7 @@
 # AvaCertify - Certificate Issuance System
-# AvaCertify - Certificate Issuance System
 
 A decentralized certificate issuance and verification system built on Avalanche blockchain using Foundry framework. This system provides secure, tamper-proof, and verifiable digital credentials through smart contracts and a modern web interface.
-A decentralized certificate issuance and verification system built on Avalanche blockchain using Foundry framework. This system provides secure, tamper-proof, and verifiable digital credentials through smart contracts and a modern web interface.
+
 
 ## 🎥 Project Demo and Pitch
 
