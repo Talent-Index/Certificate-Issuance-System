@@ -9,14 +9,21 @@ import { useToast } from "@/hooks/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle, XCircle, Loader2, Award, Calendar, Building, AlertTriangle } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { certificateService } from "@/utils/blockchain"
 
 interface Certificate {
-  certificateId: string
-  certificateType: string
-  recipientName: string
-  issueDate: string
-  expirationDate?: string
-  isRevoked: boolean
+  id: string;
+  certificateId?: string;
+  certificateType: string;
+  recipientName: string;
+  issueDate: string;
+  expirationDate?: string;
+  institutionName: string;
+  status: "active" | "revoked";
+  additionalDetails?: string;
+  transactionHash?: string;
+  documentHash?: string;
+  documentUrl?: string;
 }
 
 type VerificationStatus = "idle" | "loading" | "valid" | "invalid" | "revoked"
@@ -29,32 +36,37 @@ export default function Verify() {
   const { toast } = useToast()
 
   const handleVerify = async () => {
-    if (!certificateId) {
-      toast({
-        title: "Error",
-        description: "Please enter a certificate ID",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setVerificationStatus("loading")
-    // Simulating API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    const storedCertificates = JSON.parse(localStorage.getItem("certificates") || "[]")
-    const foundCertificate = storedCertificates.find((cert: Certificate) => cert.certificateId === certificateId)
-
-    if (foundCertificate) {
-      setCertificate(foundCertificate)
-      setVerificationStatus(foundCertificate.isRevoked ? "revoked" : "valid")
-    } else {
-      setCertificate(null)
-      setVerificationStatus("invalid")
-    }
-
-    setIsDialogOpen(true)
+  if (!certificateId) {
+    toast({
+      title: "Error",
+      description: "Please enter a certificate ID",
+      variant: "destructive",
+    });
+    return;
   }
+
+  setVerificationStatus("loading");
+  try {
+    const isValid = await certificateService.verifyCertificate(certificateId);
+    const cert = await certificateService.getCertificate(certificateId);
+    if (cert && isValid) {
+      setCertificate(cert);
+      setVerificationStatus(cert.status === "revoked" ? "revoked" : "valid");
+    } else {
+      setCertificate(null);
+      setVerificationStatus("invalid");
+    }
+  } catch (error) {
+    setCertificate(null);
+    setVerificationStatus("invalid");
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to verify certificate",
+      variant: "destructive",
+    });
+  }
+  setIsDialogOpen(true);
+};
 
   return (
     <Layout>
