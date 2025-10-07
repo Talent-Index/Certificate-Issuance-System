@@ -1,449 +1,569 @@
 // utils/blockchain.ts
-import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI, NFT_CERTIFICATE_ADDRESS, NFT_CERTIFICATE_ABI } from '../utils/contractConfig';
-import { IPFSService } from '@/utils/ipfsService';
-
-const AVALANCHE_FUJI_CONFIG = {
-  chainId: '0xA869', // 43113
-  chainName: 'Avalanche Fuji C-Chain',
-  nativeCurrency: {
-    name: 'Avalanche',
-    symbol: 'AVAX',
-    decimals: 18,
-  },
-  rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-  blockExplorerUrls: ['https://testnet.snowtrace.io/'],
-};
-
-// Define Window interface augmentation for ethereum
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      on: (event: string, handler: (...args: unknown[]) => void) => void;
-      removeListener: (event: string, handler: (...args: unknown[]) => void) => void;
-    };
-  }
-}
+import { ethers } from "ethers";
+import { CERTIFICATE_SYSTEM_ADDRESS, NFT_CERTIFICATE_ADDRESS, CERTIFICATE_SYSTEM_ABI, NFT_CERTIFICATE_ABI, AVALANCHE_FUJI_CONFIG } from "./contractConfig";
 
 export interface Certificate {
   id: string;
   certificateId?: string;
-  transactionHash?: string;
   recipientName: string;
   recipientAddress: string;
   certificateType: string;
   issueDate: string;
   expirationDate?: string;
   institutionName: string;
-  status: 'active' | 'revoked';
+  status: "active" | "revoked";
   additionalDetails?: string;
+  transactionHash?: string;
+  documentHash?: string;
+  documentUrl?: string;
+  isNFT?: boolean;
 }
 
 export const placeholderCertificates: Certificate[] = [];
 
-interface NFTMetadata {
-  name: string;
-  description: string;
-  image: string;
-  attributes: Array<{ trait_type: string; value: string }>;
-}
-
 interface ContractMethods {
-  issueCertificate(_recipientName: string, _recipientAddress: string): Promise<unknown>;
-  getCertificate(_id: string): Promise<unknown>;
-  revokeCertificate(_id: string): Promise<unknown>;
-  mintCertificate(_recipient: string, _uri: string): Promise<unknown>;
-  estimateGas: { 
-    issueCertificate: (...args: unknown[]) => Promise<bigint>;
-    mintCertificate: (...args: unknown[]) => Promise<bigint>;
-   };
+  issueCertificate(recipientName: string, recipientAddress: string): Promise<ethers.ContractTransactionResponse>;
+  getCertificate(id: string): Promise<any>;
+  verifyCertificate(id: string): Promise<boolean>;
+  revokeCertificate(id: string): Promise<ethers.ContractTransactionResponse>;
+  certificates(id: string): Promise<any>;
+  // estimateGas: {
+  //   issueCertificate(recipientName: string, recipientAddress: string): Promise<bigint>;
+  // };
+  interface: ethers.Interface;
 }
 
-// Define a combined type for your contract
-type CertificateContract = ethers.Contract & ContractMethods;
+interface NFTContractMethods {
+  mintCertificate(recipient: string, certificateURI: string): Promise<ethers.ContractTransactionResponse>;
+  getOrganizationBranding(organization: string): Promise<[string, string, boolean]>;
+  registerOrganization(logoUrl: string, brandColor: string): Promise<ethers.ContractTransactionResponse>;
+}
+
+declare global {
+  interface Window {
+    ethereum?: {
+      request(args: { method: string; params?: any[] }): Promise<any>;
+      isMetaMask?: boolean;
+      on?: (event: string, callback: (...args: any[]) => void) => void;
+      addEventListener?: (event: string, callback: (...args: any[]) => void) => void;
+      removeListener?: (event: string, callback: (...args: any[]) => void) => void;
+      removeEventListener?: (event: string, callback: (...args: any[]) => void) => void;
+    };
+  }
+}
 
 export class CertificateService {
-    getConnectedAddress() {
-        throw new Error('Method not implemented.');
-    }
-  getProvider(): ethers.BrowserProvider {
-    if (!this.provider) {
-      throw new Error("Provider not initialized");
-    }
-    return this.provider;
-  }
   private provider: ethers.BrowserProvider | null = null;
-  private signer: ethers.JsonRpcSigner | null = null;
-  private contract: CertificateContract | null = null;
+  private contract: (ethers.Contract & ContractMethods) | null = null;
+  private nftContract: (ethers.Contract & NFTContractMethods) | null = null;
+  private signer: ethers.Signer | null = null;
+  private isInitialized: boolean = false;
+  private isConnecting: boolean = false;
 
-  /**
-   * Creates a new CertificateService instance and initializes the provider if available.
-   */
-  constructor() {
-    if (typeof window !== 'undefined' && window.ethereum) {
-      this.provider = new ethers.BrowserProvider(window.ethereum);
-    }
-  }
+  constructor() {}
 
-private async initialize(): Promise<void> {
-    if (this.provider) {
-        const network = await this.provider.getNetwork();
-        const targetChainId = BigInt(AVALANCHE_FUJI_CONFIG.chainId);
-        
-        if (network.chainId !== targetChainId) {
-            try {
-                await this.provider.send('wallet_switchEthereumChain', [{ 
-                    chainId: AVALANCHE_FUJI_CONFIG.chainId 
-                }]);
-            } catch (switchError: unknown) {
-                // Handle network switching errors with proper type checking
-                const error = switchError as { code?: number };
-                if (error?.code === 4902) {
-                    try {
-                        await window.ethereum?.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [AVALANCHE_FUJI_CONFIG],
-                        } as const);
-                    } catch (_addError) {
-                        throw new Error('Failed to add Avalanche Fuji network. Please add it manually.');
-                    }
-                } else if (error?.code === 4001) {
-                    throw new Error('User rejected network switch. Please switch to Avalanche Fuji manually.');
-                } else {
-                    throw new Error('Failed to switch to Avalanche Fuji network.');
-                }
-            }
-        }
-        
-
-        this.signer = await this.provider.getSigner();
-        this.contract = new ethers.Contract(
-            CONTRACT_ADDRESS,
-            CONTRACT_ABI,
-            this.signer
-        ) as CertificateContract;
-    }
-}
-
-  /**
-   * Initializes the provider by requesting account access from the user's wallet.
-   *
-   * Raises:
-   *   Error: If no provider is available or the user rejects the connection.
-   */
   async init(): Promise<void> {
-    if (!this.provider) {
-      throw new Error('No provider available');
+    if (this.isInitialized) {
+      return;
     }
+
+    if (typeof window === "undefined" || !window.ethereum) {
+      console.warn("No Web3 provider found");
+      return;
+    }
+
     try {
-      await this.provider.send('eth_requestAccounts', []);
+      this.provider = new ethers.BrowserProvider(window.ethereum);
+      this.isInitialized = true;
+      console.log("✅ Provider initialized");
     } catch (error) {
-      console.error('Failed to initialize provider:', error);
-      throw error;
+      console.error("❌ Failed to initialize provider:", error);
+      throw new Error("Failed to initialize wallet connection");
     }
   }
 
-
-  /**
-   * Connects the user's wallet and ensures the Avalanche Fuji network is selected.
-   * This function requests account access, switches to the correct network, and initializes the contract and signer.
-   *
-   * Args:
-   *   None
-   * Returns:
-   *   A promise that resolves to the connected wallet address as a string.
-   * Raises:
-   *   Error: If MetaMask is not installed, the user rejects the connection, or network switching fails.
-   */
-  async connectWallet(): Promise<string> {
+  private async validateConnection(): Promise<void> {
+    if (!this.isInitialized) {
+      throw new Error("Service not initialized. Call init() first.");
+    }
     if (!this.provider) {
-      throw new Error('Please install MetaMask');
+      throw new Error("No provider available");
+    }
+    if (!this.signer || !this.contract || !this.nftContract) {
+      throw new Error("Wallet not connected");
+    }
+  }
+
+  async switchToFujiNetwork(): Promise<void> {
+    if (!window.ethereum) {
+      throw new Error("No Web3 provider available");
     }
     try {
-      const accounts = await this.provider.send('eth_requestAccounts', []);
-      try {
-        await (window.ethereum as NonNullable<Window['ethereum']>).request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: AVALANCHE_FUJI_CONFIG.chainId }],
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: AVALANCHE_FUJI_CONFIG.chainId }],
+      });
+    } catch (switchError: any) {
+      if (switchError.code === 4902) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [AVALANCHE_FUJI_CONFIG],
         });
-      } catch (switchError: unknown) {
-        if ((switchError as { code?: number })?.code === 4902) {
+      } else {
+        throw switchError;
+      }
+    }
+  }
+
+  async connectWallet(): Promise<string> {
+    if (this.isConnecting) {
+      throw new Error("Connection already in progress. Please wait.");
+    }
+
+    if (!window.ethereum) {
+      throw new Error("Please install MetaMask or Core Wallet");
+    }
+
+    this.isConnecting = true;
+
+    try {
+      console.log("🔌 Connecting wallet...");
+      this.provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await this.provider.send("eth_requestAccounts", []);
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found. Please unlock your wallet.");
+      }
+
+      console.log("✅ Account connected:", accounts[0]);
+      await this.switchToFujiNetwork();
+
+      console.log("🔑 Getting signer...");
+      this.signer = await this.provider.getSigner();
+      const signerAddress = await this.signer.getAddress();
+      console.log("✅ Signer obtained:", signerAddress);
+
+      this.contract = new ethers.Contract(
+        CERTIFICATE_SYSTEM_ADDRESS,
+        CERTIFICATE_SYSTEM_ABI,
+        this.signer
+      ) as ethers.Contract & ContractMethods;
+
+      this.nftContract = new ethers.Contract(
+        NFT_CERTIFICATE_ADDRESS,
+        NFT_CERTIFICATE_ABI,
+        this.signer
+      ) as ethers.Contract & NFTContractMethods;
+
+      console.log("✅ Contracts initialized");
+
+      // Handle event listeners with fallback
+      if (window.ethereum) {
+        const listenerMethod = window.ethereum.on || window.ethereum.addEventListener;
+        if (typeof listenerMethod === "function") {
           try {
-            await (window.ethereum as NonNullable<Window['ethereum']>).request({
-              method: 'wallet_addEthereumChain',
-              params: [AVALANCHE_FUJI_CONFIG],
-            });
-          } catch (addError: unknown) {
-            console.error("Failed to add network:", addError);
-            throw new Error('Failed to add Avalanche Fuji network. Please add it manually.');
+            listenerMethod.call(window.ethereum, "accountsChanged", this.handleAccountsChanged.bind(this));
+            listenerMethod.call(window.ethereum, "chainChanged", this.handleChainChanged.bind(this));
+            console.log("✅ Event listeners registered");
+          } catch (error) {
+            console.warn("⚠️ Failed to register event listeners:", error);
+            console.warn("Event listeners are not critical for core functionality. Continuing without them.");
           }
-        } else if ((switchError as { code?: number })?.code === 4001) {
-          throw new Error('User rejected network switch. Please switch to Avalanche Fuji manually.');
         } else {
-          throw new Error('Failed to switch to Avalanche Fuji network.');
+          console.warn("⚠️ Event listener method not available. Events will not be monitored.");
+        }
+      } else {
+        console.warn("⚠️ No Ethereum provider available for event listeners.");
+      }
+
+      return accounts[0];
+    } catch (error: any) {
+      console.error("❌ Connection error:", error);
+      this.signer = null;
+      this.contract = null;
+      this.nftContract = null;
+      if (error.code === 4001) {
+        throw new Error("User rejected connection request");
+      } else if (error.code === -32002) {
+        throw new Error("Connection request already pending. Please check MetaMask or Core Wallet.");
+      }
+      throw new Error(error.message || "Failed to connect wallet");
+    } finally {
+      this.isConnecting = false;
+    }
+  }
+
+  private async handleAccountsChanged(accounts: string[]): Promise<void> {
+    try {
+      if (accounts.length === 0) {
+        this.signer = null;
+        this.contract = null;
+        this.nftContract = null;
+        console.log("🔌 No accounts connected");
+      } else {
+        this.signer = await this.provider!.getSigner();
+        this.contract = new ethers.Contract(
+          CERTIFICATE_SYSTEM_ADDRESS,
+          CERTIFICATE_SYSTEM_ABI,
+          this.signer
+        ) as ethers.Contract & ContractMethods;
+        this.nftContract = new ethers.Contract(
+          NFT_CERTIFICATE_ADDRESS,
+          NFT_CERTIFICATE_ABI,
+          this.signer
+        ) as ethers.Contract & NFTContractMethods;
+        console.log("✅ Accounts updated:", accounts[0]);
+      }
+    } catch (error) {
+      console.error("❌ Error handling accounts changed:", error);
+    }
+  }
+
+  private async handleChainChanged(): Promise<void> {
+    try {
+      this.signer = null;
+      this.contract = null;
+      this.nftContract = null;
+      await this.init();
+      console.log("✅ Chain changed, reinitialized");
+    } catch (error) {
+      console.error("❌ Error handling chain changed:", error);
+    }
+  }
+
+  async hasIssuerRole(): Promise<boolean> {
+    await this.validateConnection();
+    const address = await this.getConnectedAddress();
+    if (!address) {
+      return false;
+    }
+    try {
+      // Get both roles
+      const ISSUER_ROLE = await this.contract!.ISSUER_ROLE();
+      const ADMIN_ROLE = await this.contract!.ADMIN_ROLE(); 
+      
+      const hasIssuer = await this.contract!.hasRole(ISSUER_ROLE, address);
+      const hasAdmin = await this.contract!.hasRole(ADMIN_ROLE, address);
+      
+      console.log(`Role check for ${address}: ISSUER_ROLE=${hasIssuer}, ADMIN_ROLE=${hasAdmin}`);
+      return hasIssuer || hasAdmin; // Admin inherits issuer permissions
+    } catch (error) {
+      console.error("Error checking roles:", error);
+      return false;
+    }
+  }
+
+  async issueCertificate(recipientName: string, recipientAddress: string): Promise<string> {
+    await this.validateConnection();
+    if (!recipientName?.trim() || !recipientAddress?.trim()) {
+      throw new Error("Recipient name and address are required");
+    }
+    if (!ethers.isAddress(recipientAddress)) {
+      throw new Error("Invalid recipient address");
+    }
+    if (recipientName.length > 100) {
+      throw new Error("Recipient name too long (max 100 characters)");
+    }
+
+    try {
+      console.log("📜 === Issuing Certificate ===");
+      console.log("Recipient Name:", recipientName);
+      console.log("Recipient Address:", recipientAddress);
+
+      const hasRole = await this.hasIssuerRole();
+      if (!hasRole) {
+        throw new Error("Wallet does not have ISSUER_ROLE. Contact admin to grant role.");
+      }
+
+      // const gasEstimate = await this.contract!.estimateGas.issueCertificate(recipientName, recipientAddress).catch((error) => {
+      //   console.error("Gas estimation failed:", error);
+      //   throw new Error("Failed to estimate gas. Possible reasons: insufficient funds or unauthorized issuer.");
+      // });
+
+      // const balance = await this.provider!.getBalance(await this.signer!.getAddress());
+      // if (balance < gasEstimate * BigInt(1e9)) {
+      //   throw new Error("Insufficient AVAX for gas fees. Get test AVAX from faucet.");
+      // }
+
+      const tx = await this.contract!.issueCertificate(recipientName, recipientAddress);
+      const receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error("Transaction failed");
+      }
+
+      let certificateId: string | undefined;
+      for (const log of receipt.logs) {
+        try {
+          const parsedLog = this.contract!.interface.parseLog({
+            topics: [...log.topics],
+            data: log.data,
+          });
+          if (parsedLog && parsedLog.name === "CertificateIssued") {
+            certificateId = parsedLog.args.id.toString();
+            console.log("🎉 Certificate ID:", certificateId);
+            break;
+          }
+        } catch (e) {
+          continue;
         }
       }
-      this.signer = await this.provider.getSigner();
-      this.contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        CONTRACT_ABI,
-        this.signer,
-      ) as CertificateContract;
-      return accounts[0];
-    } catch (error: unknown) {
-      console.error('Error connecting wallet:', error);
-      throw new Error((error as Error).message || 'Failed to connect wallet');
+
+      if (!certificateId) {
+        throw new Error("Failed to retrieve certificate ID");
+      }
+
+      console.log("✅ === Certificate Issuance Complete ===");
+      return certificateId;
+    } catch (error: any) {
+      console.error("❌ === Certificate Issuance Failed ===");
+      console.error("Error:", error);
+      if (error.code === "ACTION_REJECTED" || error.code === 4001) {
+        throw new Error("Transaction was rejected by user");
+      } else if (error.code === "INSUFFICIENT_FUNDS" || error.message?.includes("insufficient funds")) {
+        throw new Error("Insufficient AVAX for gas fees. Get test AVAX from faucet.");
+      } else if (error.code === "NETWORK_ERROR" || error.message?.includes("network")) {
+        throw new Error("Network error. Please check connection and ensure Avalanche Fuji Testnet.");
+      } else if (error.code === "CALL_EXCEPTION") {
+        throw new Error("Transaction failed: Likely unauthorized issuer or invalid parameters.");
+      } else if (error.message?.includes("not authorized") || error.message?.includes("ISSUER_ROLE")) {
+        throw new Error("Wallet does not have ISSUER_ROLE. Contact admin to grant role.");
+      }
+      throw new Error(error.reason || error.message || "Failed to issue certificate");
     }
   }
 
-  /**
-   * Returns the contract instance, initializing it if necessary.
-   * Ensures the provider and signer are available and connected before returning the contract.
-   *
-   * Args:
-   *   None
-   * Returns:
-   *   A promise that resolves to the ethers.Contract instance.
-   * Raises:
-   *   Error: If the wallet is not connected or the provider is unavailable.
-   */
-  async getContract(): Promise<CertificateContract> {
-    if (this.contract) {
-      return this.contract;
+  async mintNFTCertificate(recipient: string, certificateURI: string): Promise<string> {
+    await this.validateConnection();
+    if (!recipient?.trim() || !certificateURI?.trim()) {
+      throw new Error("Recipient address and certificate URI are required");
+    }
+    if (!ethers.isAddress(recipient)) {
+      throw new Error("Invalid recipient address");
     }
 
-    // ensure provider exists in browser environments
-    if (!this.provider && typeof window !== "undefined" && window.ethereum) {
-      this.provider = new ethers.BrowserProvider(window.ethereum);
-    }
+    try {
+      console.log("📜 === Minting NFT Certificate ===");
+      console.log("Recipient:", recipient);
+      console.log("Certificate URI:", certificateURI);
 
-    // ensure signer (will prompt wallet if necessary)
-    if (!this.signer) {
-      try {
-        await this.connectWallet();
-      } catch (_err) {
-        throw new Error("Wallet not connected. Call certificateService.connectWallet() first.");
+      const tx = await this.nftContract!.mintCertificate(recipient, certificateURI);
+      const receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error("Transaction failed");
       }
+
+      let tokenId: string | undefined;
+      for (const log of receipt.logs) {
+        try {
+          const parsedLog = this.nftContract!.interface.parseLog({
+            topics: [...log.topics],
+            data: log.data,
+          });
+          if (parsedLog && parsedLog.name === "CertificateMinted") {
+            tokenId = parsedLog.args.tokenId.toString();
+            console.log("🎉 Token ID:", tokenId);
+            break;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      if (!tokenId) {
+        throw new Error("Failed to retrieve token ID");
+      }
+
+      console.log("✅ === NFT Certificate Minting Complete ===");
+      return tokenId;
+    } catch (error: any) {
+      console.error("❌ === NFT Certificate Minting Failed ===");
+      console.error("Error:", error);
+      if (error.code === "ACTION_REJECTED") {
+        throw new Error("Transaction was rejected by user");
+      } else if (error.code === "INSUFFICIENT_FUNDS") {
+        throw new Error("Insufficient funds for gas fees");
+      } else if (error.code === "NETWORK_ERROR") {
+        throw new Error("Network error. Please check connection.");
+      } else if (error.message?.includes("not registered")) {
+        throw new Error("Organization not registered. Please register first.");
+      }
+      throw new Error(error.reason || error.message || "Failed to mint NFT certificate");
+    }
+  }
+
+  async registerOrganization(logoUrl: string, brandColor: string): Promise<void> {
+    await this.validateConnection();
+    if (!logoUrl?.trim() || !brandColor?.trim()) {
+      throw new Error("Logo URL and brand color are required");
     }
 
-    this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, this.signer) as CertificateContract;
+    try {
+      console.log("🏢 === Registering Organization ===");
+      const tx = await this.nftContract!.registerOrganization(logoUrl, brandColor);
+      await tx.wait();
+      console.log("✅ === Organization Registration Complete ===");
+    } catch (error: any) {
+      console.error("❌ === Organization Registration Failed ===");
+      console.error("Error:", error);
+      throw new Error(error.reason || error.message || "Failed to register organization");
+    }
+  }
+
+  async verifyCertificate(certificateId: string, isNFT: boolean = false): Promise<boolean> {
+    await this.validateConnection();
+    if (!certificateId?.trim()) {
+      throw new Error("Certificate ID is required");
+    }
+
+    try {
+      if (isNFT) {
+        const owner = await this.nftContract!.ownerOf(certificateId);
+        return owner !== ethers.ZeroAddress;
+      } else {
+        const isValid = await this.contract!.verifyCertificate(certificateId);
+        return Boolean(isValid);
+      }
+    } catch (error: any) {
+      console.error("Error verifying certificate:", error);
+      throw new Error("Failed to verify certificate");
+    }
+  }
+
+  async revokeCertificate(certificateId: string): Promise<string> {
+    await this.validateConnection();
+    if (!certificateId?.trim()) {
+      throw new Error("Certificate ID is required");
+    }
+
+    try {
+      const hasRole = await this.hasIssuerRole();
+      if (!hasRole) {
+        throw new Error("Wallet does not have ISSUER_ROLE. Contact admin to grant role.");
+      }
+
+      const tx = await this.contract!.revokeCertificate(certificateId);
+      const receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error("Transaction failed");
+      }
+      return receipt.hash;
+    } catch (error: any) {
+      console.error("Error revoking certificate:", error);
+      if (error.code === "ACTION_REJECTED") {
+        throw new Error("Transaction was rejected by user");
+      }
+      throw new Error(error.reason || error.message || "Failed to revoke certificate");
+    }
+  }
+
+  async getCertificate(certificateId: string, isNFT: boolean = false): Promise<Certificate | null> {
+    await this.validateConnection();
+    if (!certificateId?.trim()) {
+      throw new Error("Certificate ID is required");
+    }
+
+    try {
+      const storedCertificates = JSON.parse(localStorage.getItem("certificates") || "[]") as Certificate[];
+      const storedCert = storedCertificates.find((cert) => cert.id === certificateId && cert.isNFT === isNFT);
+
+      if (isNFT) {
+        const owner = await this.nftContract!.ownerOf(certificateId);
+        if (owner === ethers.ZeroAddress) {
+          return null;
+        }
+        const tokenURI = await this.nftContract!.tokenURI(certificateId);
+        return {
+          id: certificateId,
+          certificateId,
+          recipientName: storedCert?.recipientName || "Unknown",
+          recipientAddress: owner,
+          certificateType: storedCert?.certificateType || "NFT Certificate",
+          issueDate: storedCert?.issueDate || new Date().toISOString(),
+          institutionName: storedCert?.institutionName || "AvaCertify",
+          status: "active",
+          transactionHash: storedCert?.transactionHash,
+          documentHash: storedCert?.documentHash,
+          documentUrl: storedCert?.documentUrl,
+          isNFT: true,
+        };
+      } else {
+        const certificate = await this.contract!.certificates(certificateId);
+        if (!certificate || certificate.id === 0) {
+          return null;
+        }
+        return {
+          id: certificate.id.toString(),
+          certificateId: certificate.id.toString(),
+          recipientName: certificate.recipientName,
+          recipientAddress: certificate.owner,
+          certificateType: storedCert?.certificateType || "Certificate",
+          issueDate: new Date(Number(certificate.issueDate) * 1000).toISOString(),
+          institutionName: storedCert?.institutionName || "AvaCertify",
+          status: certificate.isValid ? "active" : "revoked",
+          transactionHash: storedCert?.transactionHash,
+          documentHash: storedCert?.documentHash,
+          documentUrl: storedCert?.documentUrl,
+          isNFT: false,
+        };
+      }
+    } catch (error: any) {
+      console.error("Error getting certificate:", error);
+      throw new Error("Failed to retrieve certificate");
+    }
+  }
+
+  async getConnectedAddress(): Promise<string | null> {
+    if (!this.signer) {
+      return null;
+    }
+    try {
+      return await this.signer.getAddress();
+    } catch (error) {
+      console.error("Error getting address:", error);
+      return null;
+    }
+  }
+
+  async isOrganizationRegistered(): Promise<boolean> {
+    await this.validateConnection();
+    const address = await this.getConnectedAddress();
+    if (!address) {
+      return false;
+    }
+    const [, , isRegistered] = await this.nftContract!.getOrganizationBranding(address);
+    return isRegistered;
+  }
+
+  async getContract(): Promise<ethers.Contract & ContractMethods> {
+    await this.validateConnection();
+    if (!this.contract) {
+      throw new Error("Contract not initialized");
+    }
     return this.contract;
   }
 
-  /**
-   * Validates that the contract and signer are initialized
-   * Attempts to initialize them if they're not
-   * @throws Error if initialization fails
-   */
-  private async validateConnection(): Promise<void> {
-    if (!this.contract || !this.signer) {
-      await this.getContract();
-      if (!this.contract || !this.signer) {
-        throw new Error('Contract or signer not initialized. Please connect your wallet.');
-      }
-    }
-  }
-
-  /**
-   * Issues a new certificate on the blockchain
-   * @param recipientName Name of the certificate recipient
-   * @param recipientAddress Blockchain address of the recipient
-   * @returns Promise resolving to the certificate ID if successful, null otherwise
-   * @throws Error if the transaction fails
-   */
-  async issueCertificate(recipientName: string, recipientAddress: string): Promise<string | null> {
+  async getNFTContract(): Promise<ethers.Contract & NFTContractMethods> {
     await this.validateConnection();
-    try {
-      const gasEstimate = await (this.contract!.estimateGas as unknown as { issueCertificate: (...args: unknown[]) => Promise<bigint> }).issueCertificate(recipientName, recipientAddress);
-      // ethers v6: pass overrides as the last argument, but only if all method arguments are provided
-      const tx = await (this.contract as unknown as { issueCertificate: (...args: unknown[]) => Promise<ethers.ContractTransactionResponse> }).issueCertificate(
-        recipientName,
-        recipientAddress,
-        { gasLimit: gasEstimate + (gasEstimate / 2n) }
-      );
-      const receipt = await tx.wait();
-      let certificateId = null;
-      for (const log of receipt?.logs ?? []) {
-        try {
-        const parsedLog = this.contract!.interface.parseLog(log);
-        if (parsedLog?.name === 'CertificateIssued') {
-          certificateId = parsedLog.args.id.toString();
-          break;
-        }
-      } catch {
-        // Ignore errors from logs that don't match the contract interface
-        }
-      }
-      if (!certificateId) {
-        throw new Error('Failed to retrieve certificate ID from transaction');
-      }
-      return certificateId;
-    } catch (error: unknown) {
-      console.error('Error in certificate issuance:', error);
-      throw new Error((error as Error).message || 'Failed to issue certificate');
+    if (!this.nftContract) {
+      throw new Error("NFT Contract not initialized");
     }
-  }
-  /**
-   * Generates NFT metadata from a certificate
-   * @param certificate Certificate object containing all necessary information
-   * @returns Promise resolving to NFT metadata object
-   */
-  private async generateMetadata(certificate: Certificate): Promise<NFTMetadata> {
-    return {
-      name: `Certificate for ${certificate.recipientName}`,
-      description: certificate.additionalDetails || `${certificate.certificateType} certificate issued by ${certificate.institutionName}`,
-      image: "ipfs://your-default-image-cid",
-      attributes: [
-        { trait_type: "Institution", value: certificate.institutionName },
-        { trait_type: "Type", value: certificate.certificateType },
-        { trait_type: "Issue Date", value: certificate.issueDate },
-        { trait_type: "Status", value: certificate.status === 'revoked' ? "Revoked" : "Valid" },
-      ],
-    };
+    return this.nftContract;
   }
 
-    /**
-   * Mints an NFT certificate for the specified recipient and metadata URI.
-   * This function interacts with the NFT contract to mint a new certificate token and returns the token ID.
-   *
-   * Args:
-   *   recipientAddress: The address of the recipient who will receive the NFT certificate.
-   *   metadataUri: The URI pointing to the certificate's metadata on IPFS.
-   * Returns:
-   *   A promise that resolves to the minted token ID as a string, or null if not found.
-   * Raises:
-   *   Error: If the minting transaction fails or the token ID cannot be retrieved.
-   */
-  async mintNFTCertificate(recipientAddress: string, metadataUri: string): Promise<string | null> {
-    await this.validateConnection();
-    try {
-      const nftContract = new ethers.Contract(
-        NFT_CERTIFICATE_ADDRESS,
-        NFT_CERTIFICATE_ABI,
-        this.signer,
-      ) as ethers.Contract;
-      // Use 'as any' to bypass TypeScript type error for dynamic contract methods
-      const gasEstimate = await (nftContract.estimateGas as unknown as { mintCertificate: (...args: unknown[]) => Promise<bigint> }).mintCertificate(recipientAddress, metadataUri);
-      const tx = await (nftContract as unknown as { mintCertificate: (...args: unknown[]) => Promise<ethers.ContractTransactionResponse> }).mintCertificate(recipientAddress, metadataUri, {
-        gasLimit: gasEstimate + (gasEstimate / 2n),
-      });
-      const receipt = await tx.wait();
-      let tokenId = null;
-      for (const log of receipt?.logs ?? []) {
-        if (log.address.toLowerCase() === NFT_CERTIFICATE_ADDRESS.toLowerCase()) {
-          try {
-            const parsedLog = nftContract.interface.parseLog(log);
-            if (parsedLog?.name === 'CertificateMinted') {
-              tokenId = parsedLog.args.tokenId.toString();
-              break;
-            }
-          } catch {
-            // Ignore errors from logs that don't match the contract interface
-          }
-        }
-      }
-      return tokenId;
-    } catch (error: unknown) {
-      console.error('Error minting NFT certificate:', error);
-      throw new Error((error as Error).message || 'Failed to mint NFT certificate');
-    }
+  isConnected(): boolean {
+    return this.signer !== null && this.contract !== null && this.nftContract !== null;
   }
 
-  /**
-   * Uploads NFT metadata to IPFS
-   * @param metadata NFT metadata object to upload
-   * @returns Promise resolving to the IPFS gateway URL
-   * @throws Error if IPFS upload fails
-   */
-  private async uploadMetadataToIPFS(metadata: NFTMetadata): Promise<string> {
-    try {
-      const ipfsService = new IPFSService();
-      const metadataHash = await ipfsService.uploadJSON(metadata);
-      return ipfsService.getGatewayUrl(metadataHash);
-    } catch (error) {
-      console.error('Failed to upload metadata to IPFS:', error);
-      throw new Error('IPFS upload failed');
-    }
-  }
-
-  /**
-   * Verifies a certificate's validity on the blockchain
-   * @param certificateId ID of the certificate to verify
-   * @returns Promise resolving to true if valid, false if invalid, null if error
-   */
-  async verifyCertificate(certificateId: string): Promise<boolean | null> {
-    await this.validateConnection();
-    try {
-      return await (this.contract as unknown as { verifyCertificate: (id: string) => Promise<boolean> }).verifyCertificate(certificateId);
-    } catch (error) {
-      console.error('Error verifying certificate:', error);
+  async getNetwork(): Promise<ethers.Network | null> {
+    if (!this.provider) {
       return null;
     }
-  }
-
-  /**
-   * Revokes a certificate on the blockchain
-   * @param certificateId ID of the certificate to revoke
-   * @returns Promise resolving to void if successful, null if failed
-   */
-  async revokeCertificate(certificateId: string): Promise<void | null> {
-    await this.validateConnection();
     try {
-      const tx = await (this.contract as unknown as { revokeCertificate: (id: string) => Promise<ethers.ContractTransactionResponse> }).revokeCertificate(certificateId);
-      await tx.wait();
-      return;
+      return await this.provider.getNetwork();
     } catch (error) {
-      console.error('Error revoking certificate:', error);
+      console.error("Error getting network:", error);
       return null;
-    }
-  }
-
-  /**
-   * Retrieves certificate information from the blockchain
-   * @param certificateId ID of the certificate to retrieve
-   * @returns Promise resolving to Certificate object if found, null if not found or error
-   */
-  async getCertificate(certificateId: string): Promise<Certificate | null> {
-    await this.validateConnection();
-    try {
-      const certificate = await this.contract!.certificates(certificateId);
-      if (!certificate) {
-        return null;
-      }
-      return {
-        id: certificate.id.toString(),
-        recipientName: certificate.recipientName,
-        recipientAddress: certificate.owner,
-        certificateType: "Certificate",
-        issueDate: new Date(Number(certificate.issueDate) * 1000).toISOString(),
-        institutionName: "AvaCertify",
-        status: certificate.isValid ? 'active' : 'revoked',
-      };
-    } catch (error) {
-      console.error('Error getting certificate:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Transfers a certificate to a new recipient
-   * @param certificateId ID of the certificate to transfer
-   * @param newRecipientAddress Address of the new recipient
-   * @returns Promise resolving to true if successful, false if failed
-   */
-  async transferCertificate(certificateId: string, newRecipientAddress: string): Promise<boolean> {
-    await this.validateConnection();
-    try {
-      const tx = await (this.contract as unknown as { transferCertificate: (id: string, recipient: string) => Promise<ethers.ContractTransactionResponse> }).transferCertificate(certificateId, newRecipientAddress);
-      await tx.wait();
-      return true;
-    } catch (error) {
-      console.error('Error transferring certificate:', error);
-      return false;
     }
   }
 }
 
 export const certificateService = new CertificateService();
-

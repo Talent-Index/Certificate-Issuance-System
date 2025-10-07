@@ -1,33 +1,19 @@
 // src/utils/contractConfig.ts
-// import { ethers } from 'ethers';
-
-
-
-export const Educhain_Test_CONFIG = {
-  chainId: '0xa045c',
-  chainName: 'EDU Chain Testnet',
+export const AVALANCHE_FUJI_CONFIG = {
+  chainId: "0xa869",
+  chainName: "Avalanche Fuji Testnet",
   nativeCurrency: {
-    name: 'EDU',
-    symbol: 'EDU',
-    decimals: 18
+    name: "AVAX",
+    symbol: "AVAX",
+    decimals: 18,
   },
-    rpcUrls: ['https://open-campus-codex-sepolia.drpc.org'],
-    blockExplorerUrls: ['https://edu-chain-testnet.blockscout.com/']
+  rpcUrls: ["https://api.avax-test.network/ext/bc/C/rpc"],
+  blockExplorerUrls: ["https://testnet.snowtrace.io/"],
 };
-//     const AVALANCHE_FUJI_CONFIG = {
-//     chainId: '0xa869',
-//     chainName: 'Avalanche Fuji Testnet',
-//     nativeCurrency: {
-//         name: 'AVAX',
-//         symbol: 'AVAX',
-//         decimals: 18
-//     },
-//   rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-//   blockExplorerUrls: ['https://testnet.snowtrace.io/']
-// };
+
 // Contract details
-export const CERTIFICATE_SYSTEM_ADDRESS = "0x9213c9e46e950dcb316ba35126f39299bb0ecaaa" // CertificateIssuanceSystem deployed on Fuji testnet
-export const NFT_CERTIFICATE_ADDRESS = "0xdE5b750ebBc0A92a53614f18081E72609F09BC69" // OrganizationNFTCertificate deployed on Fuji testnet
+export const CERTIFICATE_SYSTEM_ADDRESS = "0x9213c9e46e950dcb316ba35126f39299bb0ecaaa"; // CertificateIssuanceSystem deployed on Fuji testnet
+export const NFT_CERTIFICATE_ADDRESS = "0xdE5b750ebBc0A92a53614f18081E72609F09BC69"; // OrganizationNFTCertificate deployed on Fuji testnet
 
 // Keep the old export for backward compatibility
 export const CONTRACT_ADDRESS = CERTIFICATE_SYSTEM_ADDRESS;
@@ -199,19 +185,6 @@ export const CERTIFICATE_SYSTEM_ABI = [
   },
   {
     "inputs": [],
-    "name": "DEFAULT_ADMIN_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "ISSUER_ROLE",
     "outputs": [
       {
@@ -281,43 +254,6 @@ export const CERTIFICATE_SYSTEM_ABI = [
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
-      }
-    ],
-    "name": "getRoleAdmin",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "grantRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
       },
       {
         "internalType": "address",
@@ -370,24 +306,6 @@ export const CERTIFICATE_SYSTEM_ABI = [
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "renounceRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "_certificateId",
         "type": "uint256"
@@ -396,43 +314,6 @@ export const CERTIFICATE_SYSTEM_ABI = [
     "name": "revokeCertificate",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "revokeRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes4",
-        "name": "interfaceId",
-        "type": "bytes4"
-      }
-    ],
-    "name": "supportsInterface",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -474,10 +355,8 @@ export const CERTIFICATE_SYSTEM_ABI = [
   }
 ];
 
-// Keep the old export for backward compatibility
-export const CONTRACT_ABI = CERTIFICATE_SYSTEM_ABI;
-
 export const NFT_CERTIFICATE_ABI = [
+  // Replace with your NFT contract's ABI
   { "type": "constructor", "inputs": [], "stateMutability": "nonpayable" },
   { "type": "function", "name": "DEFAULT_ADMIN_ROLE", "inputs": [], "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }], "stateMutability": "view" },
   { "type": "function", "name": "MINTER_ROLE", "inputs": [], "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }], "stateMutability": "view" },
@@ -524,4 +403,4 @@ export const NFT_CERTIFICATE_ABI = [
   { "type": "error", "name": "ERC721InvalidReceiver", "inputs": [{ "name": "receiver", "type": "address", "internalType": "address" }] },
   { "type": "error", "name": "ERC721InvalidSender", "inputs": [{ "name": "sender", "type": "address", "internalType": "address" }] },
   { "type": "error", "name": "ERC721NonexistentToken", "inputs": [{ "name": "tokenId", "type": "uint256", "internalType": "uint256" }] }
-];
+]
