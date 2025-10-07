@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { PlusCircle, FileText, Copy, ExternalLink, Loader2, Upload, CheckCircle } from "lucide-react";
+import { FileText, Copy, ExternalLink, Loader2, Upload, CheckCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useToast } from "@/hooks/use-toast";
 import { Certificate, certificateService } from "@/utils/blockchain";
@@ -67,7 +67,7 @@ export default function Dashboard() {
       }
       setCertificates(blockchainCertificates);
       localStorage.setItem("certificates", JSON.stringify(blockchainCertificates));
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to fetch certificates:", error);
       toast({
         title: "Error",
@@ -75,7 +75,7 @@ export default function Dashboard() {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, checkNetwork]);
 
   useEffect(() => {
     const initBlockchain = async () => {
@@ -93,7 +93,7 @@ export default function Dashboard() {
           });
           fetchCertificates();
         }
-      } catch (error) {
+      } catch (error: unknown) {
         setIsConnected(false);
         toast({
           title: "Connection Error",
@@ -158,11 +158,11 @@ export default function Dashboard() {
         title: "File Uploaded",
         description: "Document and metadata successfully uploaded to IPFS",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setUploadState((prev) => ({ ...prev, isUploading: false }));
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload file to IPFS",
+        description: error instanceof Error ? error.message : "Failed to upload file to IPFS",
         variant: "destructive",
       });
     }
@@ -189,10 +189,10 @@ export default function Dashboard() {
         title: "Organization Registered",
         description: "Successfully registered organization for NFT certificates",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Registration Failed",
-        description: error.message || "Failed to register organization",
+        description: error instanceof Error ? error.message : "Failed to register organization",
         variant: "destructive",
       });
     }
@@ -311,25 +311,31 @@ export default function Dashboard() {
         documentUrl: "",
       });
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      if (fileInput) fileInput.value = "";
-    } catch (error: any) {
+      if (fileInput) {
+        fileInput.value = "";
+      }
+    } catch (error: unknown) {
       let message = isNFT ? "Failed to mint NFT certificate" : "Failed to issue certificate";
-      if (error.code === 4001 || error.code === "ACTION_REJECTED") {
-        message = "User rejected the transaction";
-      } else if (error.message?.includes("insufficient funds")) {
-        message = "Insufficient AVAX for gas fees. Get test AVAX from faucet.";
-      } else if (error.message?.includes("network")) {
-        message = "Please ensure you're connected to the Avalanche Fuji Testnet";
-      } else if (error.message?.includes("not authorized") || error.message?.includes("ISSUER_ROLE")) {
-        message = "Wallet not authorized to issue certificates. Contact admin.";
-      } else if (error.message?.includes("not registered")) {
-        message = "Organization not registered. Please register first.";
-      } else if (error.message?.includes("CALL_EXCEPTION")) {
-        message = "Transaction failed: Likely unauthorized issuer or invalid parameters.";
+      if (error instanceof Error) {
+        if (error.message.includes("4001") || error.message.includes("ACTION_REJECTED")) {
+          message = "User rejected the transaction";
+        } else if (error.message.includes("insufficient funds")) {
+          message = "Insufficient AVAX for gas fees. Get test AVAX from faucet.";
+        } else if (error.message.includes("network")) {
+          message = "Please ensure you're connected to the Avalanche Fuji Testnet";
+        } else if (error.message.includes("not authorized") || error.message.includes("ISSUER_ROLE")) {
+          message = "Wallet not authorized to issue certificates. Contact admin.";
+        } else if (error.message.includes("not registered")) {
+          message = "Organization not registered. Please register first.";
+        } else if (error.message.includes("CALL_EXCEPTION")) {
+          message = "Transaction failed: Likely unauthorized issuer or invalid parameters.";
+        } else {
+          message = error.message;
+        }
       }
       toast({
         title: "Error",
-        description: error.message || message,
+        description: message,
         variant: "destructive",
       });
     } finally {

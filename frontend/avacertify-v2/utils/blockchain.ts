@@ -27,6 +27,7 @@ interface ContractMethods {
   verifyCertificate(id: string): Promise<boolean>;
   revokeCertificate(id: string): Promise<ethers.ContractTransactionResponse>;
   certificates(id: string): Promise<any>;
+  transferCertificate(certificateId: string, to: string): Promise<ethers.ContractTransactionResponse>;
   // estimateGas: {
   //   issueCertificate(recipientName: string, recipientAddress: string): Promise<bigint>;
   // };
@@ -181,11 +182,17 @@ export class CertificateService {
       this.signer = null;
       this.contract = null;
       this.nftContract = null;
+      
       if (error.code === 4001) {
-        throw new Error("User rejected connection request");
+        throw new Error("User rejected the connection request");
       } else if (error.code === -32002) {
-        throw new Error("Connection request already pending. Please check MetaMask or Core Wallet.");
+        throw new Error("Wallet connection already pending. Please check your wallet");
+      } else if (error.code === -32603) {
+        throw new Error("Internal wallet error. Please try again");
+      } else if (error.message?.includes("network")) {
+        throw new Error("Please connect to Avalanche Fuji Testnet");
       }
+      
       throw new Error(error.message || "Failed to connect wallet");
     } finally {
       this.isConnecting = false;
@@ -562,6 +569,29 @@ export class CertificateService {
     } catch (error) {
       console.error("Error getting network:", error);
       return null;
+    }
+  }
+
+  /**
+   * Transfers a certificate (on-chain) to another address.
+   * Returns true when the transaction succeeds, false otherwise.
+   */
+  async transferCertificate(certificateId: string, to: string): Promise<boolean> {
+    await this.validateConnection();
+    if (!certificateId?.trim()) {
+      throw new Error("Certificate ID is required");
+    }
+    if (!to?.trim() || !ethers.isAddress(to)) {
+      throw new Error("Invalid recipient address");
+    }
+
+    try {
+      const tx = await this.contract!.transferCertificate(certificateId, to);
+      const receipt = await tx.wait();
+      return !!receipt;
+    } catch (error: any) {
+      console.error("Error transferring certificate:", error);
+      return false;
     }
   }
 }

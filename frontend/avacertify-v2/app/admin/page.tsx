@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,13 @@ export default function AdminPage() {
     const { toast } = useToast();
     const ipfsService = new IPFSService();
 
+    const checkNetwork = useCallback(async () => {
+        const network = await certificateService.getNetwork();
+        if (!network || network.chainId !== BigInt(parseInt(AVALANCHE_FUJI_CONFIG.chainId, 16))) {
+            throw new Error("Please connect to Avalanche Fuji Testnet");
+        }
+    }, []);
+
     useEffect(() => {
         const checkExistingConnection = async () => {
             try {
@@ -72,7 +79,7 @@ export default function AdminPage() {
                         description: `Wallet connected: ${address.slice(0, 6)}...${address.slice(-4)}`,
                     });
                 }
-            } catch (error) {
+            } catch (error: unknown) {
                 console.error("Init error:", error);
                 toast({
                     title: "Initialization Error",
@@ -83,14 +90,9 @@ export default function AdminPage() {
         };
 
         checkExistingConnection();
-    }, []);
+    }, [toast, checkNetwork]);
 
-    const checkNetwork = async () => {
-        const network = await certificateService.getNetwork();
-        if (!network || network.chainId !== BigInt(parseInt(AVALANCHE_FUJI_CONFIG.chainId, 16))) {
-            throw new Error("Please connect to Avalanche Fuji Testnet");
-        }
-    };
+    
 
     const connectWallet = async () => {
         if (walletState.isConnecting) {
@@ -118,7 +120,7 @@ export default function AdminPage() {
                 title: "Wallet Connected",
                 description: `Connected to ${address.slice(0, 6)}...${address.slice(-4)}`,
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             setWalletState((prev) => ({
                 ...prev,
                 isConnecting: false,
@@ -126,7 +128,7 @@ export default function AdminPage() {
             }));
             toast({
                 title: "Connection Failed",
-                description: error.message || "Failed to connect wallet",
+                description: error instanceof Error ? error.message : "Failed to connect wallet",
                 variant: "destructive",
             });
         }
@@ -134,7 +136,9 @@ export default function AdminPage() {
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (!file) return;
+        if (!file) {
+          return;
+        }
 
         const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
         const maxSize = 5 * 1024 * 1024; // 5MB
@@ -183,11 +187,11 @@ export default function AdminPage() {
                 title: "File Uploaded",
                 description: "Document and metadata successfully uploaded to IPFS",
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             setUploadState((prev) => ({ ...prev, isUploading: false }));
             toast({
                 title: "Upload Failed",
-                description: error.message || "Failed to upload file to IPFS",
+                description: error instanceof Error ? error.message : "Failed to upload file to IPFS",
                 variant: "destructive",
             });
         }
@@ -214,10 +218,10 @@ export default function AdminPage() {
                 title: "Organization Registered",
                 description: "Successfully registered organization for NFT certificates",
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({
                 title: "Registration Failed",
-                description: error.message || "Failed to register organization",
+                description: error instanceof Error ? error.message : "Failed to register organization",
                 variant: "destructive",
             });
         }
@@ -329,23 +333,27 @@ export default function AdminPage() {
                 documentUrl: "",
             });
             const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-            if (fileInput) fileInput.value = "";
-        } catch (error: any) {
+            if (fileInput) {
+              fileInput.value = "";
+            }
+        } catch (error: unknown) {
             let message = isNFT ? "Failed to mint NFT certificate" : "Failed to issue certificate";
-            if (error.code === "ACTION_REJECTED" || error.code === 4001) {
-                message = "User rejected the transaction";
-            } else if (error.message?.includes("insufficient funds")) {
-                message = "Insufficient AVAX for gas fees. Get test AVAX from faucet.";
-            } else if (error.message?.includes("network")) {
-                message = "Please ensure you're connected to the Avalanche Fuji Testnet";
-            } else if (error.message?.includes("not authorized")) {
-                message = "Wallet not authorized to issue certificates. Contact admin.";
-            } else if (error.message?.includes("not registered")) {
-                message = "Organization not registered. Please register first.";
+            if (error instanceof Error) {
+                if (error.message.includes("ACTION_REJECTED") || error.message.includes("4001")) {
+                    message = "User rejected the transaction";
+                } else if (error.message.includes("insufficient funds")) {
+                    message = "Insufficient AVAX for gas fees. Get test AVAX from faucet.";
+                } else if (error.message.includes("network")) {
+                    message = "Please ensure you're connected to the Avalanche Fuji Testnet";
+                } else if (error.message.includes("not authorized")) {
+                    message = "Wallet not authorized to issue certificates. Contact admin.";
+                } else if (error.message.includes("not registered")) {
+                    message = "Organization not registered. Please register first.";
+                }
             }
             toast({
                 title: "Error",
-                description: error.message || message,
+                description: message,
                 variant: "destructive",
             });
         } finally {

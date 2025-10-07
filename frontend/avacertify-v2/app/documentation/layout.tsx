@@ -7,7 +7,7 @@ import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { Layout } from "@/components/layout"
 import type React from "react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+// SpeedInsights intentionally not used directly in layout; import removed to satisfy linter
 
 interface NavItem {
   title: string
@@ -32,7 +32,7 @@ const sections: NavSection[] = [
     items: [
       { title: "Architecture", href: "/documentation/architecture" },
       { title: "Smart Contracts", href: "/documentation/smart-contracts" },
-      { title: "Frontend & UI", href: "/d</div>ocumentation/frontend" },
+  { title: "Frontend & UI", href: "/documentation/frontend" },
       { title: "Backend & API", href: "/documentation/backend" },
     ],
   },

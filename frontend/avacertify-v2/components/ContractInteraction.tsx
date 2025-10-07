@@ -58,7 +58,7 @@ export const ContractStatus: React.FC = () => {
         checkConnection();
     }, []);
 
-    const checkConnection = async () => {
+    const _checkConnection = async () => {
         try {
             const address = certificateService.getConnectedAddress();
             if (typeof address === 'string' && address) {
@@ -67,7 +67,7 @@ export const ContractStatus: React.FC = () => {
             } else {
                 setStatus('disconnected');
             }
-        } catch (error: any) {
+        } catch (_error: unknown) {
             setStatus('disconnected');
         }
     };
@@ -78,8 +78,8 @@ export const ContractStatus: React.FC = () => {
             const connectedAddress = await certificateService.connectWallet();
             setAddress(connectedAddress);
             setStatus('connected');
-        } catch (err) {
-            console.error(err);
+        } catch (_err: unknown) {
+            console.error(_err);
             setStatus('disconnected');
         }
     };
@@ -93,8 +93,8 @@ export const ContractStatus: React.FC = () => {
         try {
             const cert = await certificateService.getCertificate("1");
             console.log('Certificate:', cert);
-        } catch (err) {
-            console.error('Failed to get certificate:', err);
+        } catch (_err: unknown) {
+            console.error('Failed to get certificate:', _err);
         }
     };
 
@@ -119,11 +119,11 @@ export const ContractStatus: React.FC = () => {
                 title: "Success",
                 description: `Certificate issued with ID: ${id}`,
             });
-        } catch (error) {
-            console.error(error);
+        } catch (_error: unknown) {
+            console.error(_error);
             toast({
                 title: "Error",
-                description: error instanceof Error ? error.message : "Failed to issue certificate",
+                description: _error instanceof Error ? _error.message : String(_error),
                 variant: "destructive"
             });
         } finally {
