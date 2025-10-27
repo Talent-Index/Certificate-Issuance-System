@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { PlusCircle, FileText, Copy, ExternalLink, Loader2, Upload, CheckCircle } from "lucide-react";
+import { FileText, Copy, ExternalLink, Loader2, Upload, CheckCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useToast } from "@/hooks/use-toast";
 import { Certificate, certificateService } from "@/utils/blockchain";
@@ -45,7 +45,6 @@ export default function Dashboard() {
     brandColor: "#FFFFFF",
   });
   const { toast } = useToast();
-  const ipfsService = new IPFSService();
 
   const checkNetwork = useCallback(async () => {
     const network = await certificateService.getNetwork();
@@ -75,7 +74,7 @@ export default function Dashboard() {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, checkNetwork]);
 
   useEffect(() => {
     const initBlockchain = async () => {
@@ -112,7 +111,7 @@ export default function Dashboard() {
     }
 
     const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
       toast({
@@ -135,6 +134,14 @@ export default function Dashboard() {
     setUploadState((prev) => ({ ...prev, isUploading: true }));
 
     try {
+      // Check if Pinata credentials are configured
+      if (!process.env.NEXT_PUBLIC_PINATA_JWT || !process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
+        throw new Error("IPFS upload not configured. Please add Pinata credentials to continue.");
+      }
+      
+      // Only instantiate IPFSService when actually needed
+      const ipfsService = new IPFSService() as any;
+      
       const documentHash = await ipfsService.uploadFile(file);
       const documentUrl = ipfsService.getGatewayUrl(documentHash);
       const metadata = ipfsService.generateMetadata(
@@ -162,9 +169,12 @@ export default function Dashboard() {
       setUploadState((prev) => ({ ...prev, isUploading: false }));
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload file to IPFS",
+        description: error.message || "Failed to upload file to IPFS. This feature is optional.",
         variant: "destructive",
       });
+      // Clear the file input
+      const fileInput = event.target;
+      if (fileInput) fileInput.value = "";
     }
   };
 
@@ -204,6 +214,20 @@ export default function Dashboard() {
       title: "Copied",
       description: `${label} copied to clipboard`,
     });
+  };
+
+  const isFormValid = () => {
+    const { recipientName, recipientAddress, certificateType, issueDate, institutionName } = formData;
+    
+    if (!recipientName || !recipientAddress || !certificateType || !issueDate || !institutionName) {
+      return false;
+    }
+
+    if (isNFT && !isRegistered) {
+      return false;
+    }
+
+    return true;
   };
 
   const handleIssueCertificate = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -252,6 +276,8 @@ export default function Dashboard() {
 
       let certificateId: string;
       if (isNFT) {
+        // Only instantiate IPFSService when needed for NFT
+        const ipfsService = new IPFSService();
         const metadata = ipfsService.generateMetadata(
           certificateType,
           "Certificate issued by AvaCertify",
@@ -374,7 +400,8 @@ export default function Dashboard() {
                   </div>
 
                   {isNFT && !isRegistered && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 p-4 border rounded-lg bg-muted">
+                      <p className="text-sm font-medium">Register your organization first to issue NFT certificates</p>
                       <div className="space-y-2">
                         <Label htmlFor="logoUrl">Logo URL *</Label>
                         <Input
@@ -382,7 +409,6 @@ export default function Dashboard() {
                           value={formData.logoUrl}
                           onChange={(e) => handleInputChange("logoUrl", e.target.value)}
                           placeholder="https://example.com/logo.png"
-                          required
                         />
                       </div>
                       <div className="space-y-2">
@@ -392,17 +418,16 @@ export default function Dashboard() {
                           type="color"
                           value={formData.brandColor}
                           onChange={(e) => handleInputChange("brandColor", e.target.value)}
-                          required
                         />
                       </div>
-                      <Button onClick={handleRegisterOrganization} className="w-full">
+                      <Button type="button" onClick={handleRegisterOrganization} className="w-full">
                         Register Organization
                       </Button>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="document">Certificate Document (Optional)</Label>
+                    <Label htmlFor="document">Certificate Document (Optional - Requires IPFS Setup)</Label>
                     <Input
                       id="document"
                       type="file"
@@ -410,6 +435,9 @@ export default function Dashboard() {
                       onChange={handleFileUpload}
                       disabled={uploadState.isUploading}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      File upload requires Pinata IPFS credentials. You can issue certificates without uploading documents.
+                    </p>
                     {uploadState.isUploading && (
                       <div className="flex items-center mt-2">
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -497,7 +525,7 @@ export default function Dashboard() {
                   </div>
                   <Button
                     type="submit"
-                    disabled={isIssuing || !isConnected || (isNFT && !isRegistered)}
+                    disabled={isIssuing || !isConnected || !isFormValid()}
                     className="w-full"
                   >
                     {isIssuing ? (
@@ -548,7 +576,7 @@ export default function Dashboard() {
                                   Issued to: {cert.recipientName}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  Status: {cert.status}
+                                  Status: {cert.status} {cert.isNFT && "(NFT)"}
                                 </p>
                               </div>
                               <FileText className="h-6 w-6 text-primary" />
@@ -575,9 +603,9 @@ export default function Dashboard() {
             {selectedCertificate && (
               <div className="space-y-4">
                 <div>
-                  <Label>Certificate ID</Label>
+                  <Label>Certificate ID {selectedCertificate.isNFT && "(Token ID)"}</Label>
                   <div className="flex items-center space-x-2">
-                    <p>{selectedCertificate.id}</p>
+                    <p className="truncate">{selectedCertificate.id}</p>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -594,7 +622,7 @@ export default function Dashboard() {
                 <div>
                   <Label>Recipient Address</Label>
                   <div className="flex items-center space-x-2">
-                    <p>{selectedCertificate.recipientAddress}</p>
+                    <p className="truncate">{selectedCertificate.recipientAddress}</p>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -650,7 +678,7 @@ export default function Dashboard() {
                   <div>
                     <Label>Transaction Hash</Label>
                     <div className="flex items-center space-x-2">
-                      <p>{selectedCertificate.transactionHash}</p>
+                      <p className="truncate">{selectedCertificate.transactionHash}</p>
                       <Button
                         variant="ghost"
                         size="sm"
